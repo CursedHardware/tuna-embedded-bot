@@ -1,7 +1,7 @@
 import fetch from 'node-fetch'
 import urlcat from 'urlcat'
 import { toReadableNumber } from '../utils'
-import { Payload, ProductChina, ProductIntl } from './types'
+import { Payload, ProductChina, ProductIntl, ProductSearch } from './types'
 
 export function getPackage(p: ProductIntl) {
   return `${toReadableNumber(p.minPacketNumber)} ${p.productUnit}/${p.minPacketUnit}`
@@ -18,16 +18,17 @@ export async function getProductCodeFromId(productId: number) {
   return result.code
 }
 
-export async function getProductIdFromCode(code: string) {
-  const link = urlcat('https://so.szlcsc.com/phone/p/product/search', { keyword: code })
+export async function search(keyword: string) {
+  const link = urlcat('https://so.szlcsc.com/phone/p/product/search', { keyword })
   const response = await fetch(link)
-  interface Product {
-    id: number
-    code: string
-  }
-  const payload: Payload<{ productList: Product[] }> = await response.json()
+  const payload: Payload<{ productList: ProductSearch[] }> = await response.json()
   if (payload.code !== 200) throw new Error(payload.msg)
-  const matched = payload.result.productList.find((p) => p.code === code)
+  return payload.result.productList
+}
+
+export async function getProductIdFromCode(code: string) {
+  const products = await search(code)
+  const matched = products.find((p) => p.code === code)
   if (!matched) throw new Error('Not Found')
   return matched.id
 }

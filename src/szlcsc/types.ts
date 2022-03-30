@@ -27,6 +27,11 @@ export interface ProductChina {
   param: Record<string, string> | null
 }
 
+export interface ProductSearch {
+  id: number
+  code: string
+}
+
 export interface ProductPrice {
   ladder: number
   usdPrice: number
