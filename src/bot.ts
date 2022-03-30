@@ -1,7 +1,20 @@
-import { Telegraf } from 'telegraf'
+import { Composer, Telegraf } from 'telegraf'
 import SZLCSC from './szlcsc'
 
 export const bot = new Telegraf(process.env.BOT_TOKEN ?? '')
+
+// prettier-ignore
+const chatIDs = [
+  -1001232571812 /* internal group */,
+  -1001630828458 /* test group */
+]
+
+bot.use(
+  Composer.groupChat((ctx, next) => {
+    if (chatIDs.includes(ctx.chat?.id ?? Number.NaN)) return next()
+    return ctx.leaveChat()
+  })
+)
 
 bot.use(async (ctx, next) => {
   console.log(ctx.message)
