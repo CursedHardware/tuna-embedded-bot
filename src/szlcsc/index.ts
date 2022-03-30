@@ -101,11 +101,13 @@ async function getProductFromIntl(product_code: string): Promise<ProductIntl> {
 
 function* makeDatasheetPreview(params: Record<string, string> | null) {
   if (!params) return
-  const isEmpty = Object.values(params).every((value) => value === '-')
+  const isEmpty = Object.values(params).every((value) => value === '-' || value === '0')
   if (isEmpty) return
   yield 'Datasheet:'
-  for (const [name, value] of Object.entries(params)) {
-    if (value === '-') continue
+  const entries = Object.entries(params)
+  entries.sort((a, b) => a[0].localeCompare(b[0], 'zh-CN'))
+  for (const [name, value] of entries) {
+    if (value === '-' || value === '0') continue
     yield `${name}: ${value}`
   }
 }
