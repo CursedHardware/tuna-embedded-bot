@@ -8,8 +8,6 @@ export interface ProductIntl {
   productId: number
   productCode: string
   productModel: string
-  catalogName: string
-  parentCatalogName: string
   brandNameEn: string
   encapStandard: string
   productUnit: string

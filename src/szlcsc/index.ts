@@ -23,8 +23,7 @@ const isProductURL = (input: string) => {
 }
 
 bot.url(isProductURL, async (ctx) => {
-  if (!ctx.match.groups) return
-  const { id, code } = ctx.match.groups
+  const { id, code } = ctx.match.groups ?? {}
   if (code) {
     return handle(ctx, code.toUpperCase())
   } else if (id) {
@@ -34,18 +33,18 @@ bot.url(isProductURL, async (ctx) => {
 
 bot.hears(/^(?<code>C(?:\d+))$/i, (ctx) => {
   if (!ctx.match.groups?.code) return
-  return handle(ctx, ctx.match.groups.code.toUpperCase())
+  return handle(ctx, ctx.match.groups.code)
 })
 
-bot.command('/lc', (ctx) => {
-  const matched = /C\d+/i.exec(ctx.message.text)
-  if (!matched) return
-  return handle(ctx, matched[0].toUpperCase())
+bot.command('/lc', async (ctx) => {
+  const matches = Array.from(ctx.message.text.matchAll(/C\d+/g)).map((match) => match[0])
+  await Promise.all(matches.map((code) => handle(ctx, code)))
 })
 
 export default bot
 
 async function handle(ctx: Context, productCode: string) {
+  productCode = productCode.toUpperCase()
   const product = await getProductFromIntl(productCode)
   const productChina = await getProductFromChina(product.productId)
   const reply_to_message_id = ctx.message?.message_id
@@ -53,7 +52,6 @@ async function handle(ctx: Context, productCode: string) {
     `Brand: <code>${product.brandNameEn}</code>`,
     `Model: <code>${product.productModel}</code>`,
     `Package: <code>${product.encapStandard}</code> (${getPackage(product)})`,
-    `Catalog: <code>${product.parentCatalogName}</code> / <code>${product.catalogName}</code>`,
     `Stock (Jiangsu): ${getInStock(product, product.stockJs)}`,
     `Stock (Shenzhen): ${getInStock(product, product.stockSz)}`,
     `Price List (CNY): ${makeSimpleList(productChina.priceList)
@@ -79,9 +77,9 @@ async function handle(ctx: Context, productCode: string) {
     reply_markup,
   }
   if (product.productImages[0]) {
-    await ctx.replyWithPhoto({ url: product.productImages[0] }, { caption: lines.join('\n'), ...extra })
+    return ctx.replyWithPhoto({ url: product.productImages[0] }, { caption: lines.join('\n'), ...extra })
   } else {
-    await ctx.reply(lines.join('\n'), extra)
+    return ctx.reply(lines.join('\n'), extra)
   }
 }
 
