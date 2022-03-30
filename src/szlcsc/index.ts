@@ -69,7 +69,7 @@ async function handle(ctx: Context, productCode: string) {
       .map((_) => `${toReadableNumber(_.ladder)}+: ${_.usdPrice}`)
       .join(', ')}`,
   ]
-  lines.push(...makeDatasheetPreview(productChina.param))
+  lines.push(...makeDatasheetPreview(product.paramVOList))
   const reply_markup: InlineKeyboardMarkup = {
     inline_keyboard: [
       [
@@ -99,15 +99,25 @@ async function getProductFromIntl(product_code: string): Promise<ProductIntl> {
   return detail
 }
 
-function* makeDatasheetPreview(params: Record<string, string> | null) {
-  if (!params) return
-  const isEmpty = Object.values(params).every((value) => value === '-')
-  if (isEmpty) return
-  yield 'Datasheet:'
-  for (const [name, value] of Object.entries(params)) {
-    if (value === '-') continue
-    yield `${name}: ${value}`
-  }
+function makeDatasheetPreview(elements: ProductIntl['paramVOList']) {
+  if (!elements) return []
+  elements = elements.filter(({ paramValueEn: value }) => !(value === '-' || value === '0'))
+  if (elements.length === 0) return []
+  // elements.sort((a, b) => a.paramNameEn.localeCompare(b.paramNameEn, 'zh-CN'))
+  return [
+    'Datasheet:',
+    ...elements.map((element) =>
+      `${element.paramNameEn}: ${element.paramValueEn}`
+        .replace(/（/g, '(')
+        .replace(/）/g, ')')
+        .replace(/KB/g, 'kB')
+        .replace(/MHz/g, 'Mhz')
+        .replace(/FLASH/g, 'Flash')
+        .replace(/(\d+)KX(\d+)/g, '$1k x $2')
+        .replace(/(\d+(?:\.\d+)?)V/g, '$1v')
+        .replace(/\xAE/g, '')
+    ),
+  ]
 }
 
 function makeSimpleList<T>(elements: T[]): [T, T] {
