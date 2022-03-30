@@ -19,6 +19,7 @@ export interface ProductIntl {
   productPriceList: ProductPrice[]
   productImages: string[]
   pdfUrl: string
+  paramVOList: ParameterItem[] | null
 }
 
 export interface ProductChina {
@@ -37,4 +38,9 @@ export interface ProductPrice {
   usdPrice: number
   currencyPrice: number
   currencySymbol: String
+}
+
+export interface ParameterItem {
+  paramNameEn: string
+  paramValueEn: string
 }
