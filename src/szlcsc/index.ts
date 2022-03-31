@@ -1,6 +1,7 @@
 import fetch from 'node-fetch'
 import { Composer, Context } from 'telegraf'
-import type { InlineKeyboardMarkup, Message } from 'telegraf/typings/core/types/typegram'
+import type { InlineKeyboardMarkup, InputMediaPhoto, Message } from 'telegraf/typings/core/types/typegram'
+import { ExtraReplyMessage } from 'telegraf/typings/telegram-types'
 import urlcat from 'urlcat'
 import { getLuckyURL, toReadableNumber } from '../utils'
 import type { ProductIntl } from './types'
@@ -33,10 +34,6 @@ export default bot
 
 async function handle(ctx: Context, productCode: string) {
   productCode = productCode.toUpperCase()
-  const holdMessage = await ctx.reply(`Reading ${productCode}`, {
-    parse_mode: 'HTML',
-    reply_to_message_id: ctx.message?.message_id,
-  })
   const product = await getProductFromIntl(productCode)
   const productChina = await getProductFromChina(product.productId)
   const lines = [
@@ -62,25 +59,27 @@ async function handle(ctx: Context, productCode: string) {
       [{ text: 'Datasheet', url: product.pdfUrl ? product.pdfUrl : getLuckyURL(`${product.brandNameEn} ${product.productModel} datasheet filetype:pdf`) }],
     ],
   }
-  if (product.productImages[0]) {
-    await ctx.replyWithPhoto(product.productImages[0], {
-      caption: lines.join('\n'),
-      parse_mode: 'HTML',
-      reply_markup,
-    })
-  } else if (product.pdfUrl) {
-    await ctx.replyWithDocument(product.pdfUrl, {
-      caption: lines.join('\n'),
-      parse_mode: 'HTML',
-      reply_markup,
-    })
-  } else {
-    await ctx.reply(lines.join('\n'), {
-      parse_mode: 'HTML',
-      reply_markup,
-    })
+  const caption = lines.join('\n')
+  const extra: ExtraReplyMessage = {
+    parse_mode: 'HTML',
+    reply_markup,
+    reply_to_message_id: ctx.message?.message_id,
   }
-  await ctx.deleteMessage(holdMessage.message_id)
+  if (ctx.chat?.type === 'private') {
+    if (product.productImages?.length) {
+      const photos: InputMediaPhoto[] = product.productImages.map((media) => ({ type: 'photo', media }))
+      await ctx.replyWithMediaGroup(photos, extra)
+    }
+    if (product.pdfUrl) {
+      await ctx.replyWithDocument(product.pdfUrl, { caption, ...extra })
+    } else {
+      await ctx.reply(caption, extra)
+    }
+  } else if (product.productImages[0]) {
+    await ctx.replyWithPhoto(product.productImages[0], { caption, ...extra })
+  } else {
+    await ctx.reply(caption, extra)
+  }
 }
 
 async function getProductFromIntl(product_code: string): Promise<ProductIntl> {
