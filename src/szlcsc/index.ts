@@ -1,49 +1,24 @@
 import fetch from 'node-fetch'
 import { Composer, Context } from 'telegraf'
-import type { InlineKeyboardMarkup, MessageEntity } from 'telegraf/typings/core/types/typegram'
+import type { InlineKeyboardMarkup, Message } from 'telegraf/typings/core/types/typegram'
 import urlcat from 'urlcat'
 import { getLuckyURL, toReadableNumber } from '../utils'
 import type { ProductIntl } from './types'
-import { getInStock, getPackage, getProductCodeFromId, getProductFromChina, search } from './utils'
+import { getInStock, getPackage, getProductCodeFromURL, getProductFromChina, search } from './utils'
 
 const bot = new Composer()
 
-const isProductURL = (input: string) => {
-  const url = new URL(input)
-  if (url.host === 'item.szlcsc.com') {
-    return /(?<id>\d+)\.html$/.exec(url.pathname)
-  } else if (url.host === 'm.szlcsc.com') {
-    const id = url.searchParams.get('productId')
-    return /^(?<id>\d+)$/.exec(id ?? '')
-  } else if (url.host === 'lcsc.com') {
-    return /(?<code>C\d+)\.html$/.exec(url.pathname)
-  }
-  return null
-}
-
-bot.url(isProductURL, async (ctx) => {
-  const { id, code } = ctx.match.groups ?? {}
-  if (code) {
-    return handle(ctx, code.toUpperCase())
-  } else if (id) {
-    return handle(ctx, await getProductCodeFromId(Number.parseInt(id, 10)))
-  }
-})
-
-bot.hears(/^(?<code>C(?:\d+))$/i, (ctx) => {
-  if (!ctx.match.groups?.code) return
-  return handle(ctx, ctx.match.groups.code)
+bot.on('text', async (ctx, next) => {
+  if (ctx.chat.type !== 'private') return next()
+  return Promise.all((await getProducts(ctx.message)).map((code) => handle(ctx, code)))
 })
 
 bot.command('/lc', async (ctx) => {
-  const { text, reply_to_message } = ctx.message
-  function* getProducts() {
-    yield* getProductCodeList(text)
-    if (reply_to_message && 'text' in reply_to_message) {
-      yield* getProductCodeList(reply_to_message.text)
-    }
+  const products = await getProducts(ctx.message)
+  if (ctx.message.reply_to_message && 'text' in ctx.message.reply_to_message) {
+    products.push(...(await getProducts(ctx.message.reply_to_message)))
   }
-  await Promise.all([...new Set(getProducts())].map((code) => handle(ctx, code)))
+  await Promise.all([...new Set(products)].map((code) => handle(ctx, code)))
 })
 
 bot.command('/find', async (ctx) => {
@@ -133,4 +108,20 @@ function makeSimpleList<T>(elements: T[]): [T, T] {
 
 function getProductCodeList(text: string) {
   return Array.from(text.matchAll(/C\d+/gi)).map((match) => match[0])
+}
+
+function* getURLs({ text, entities }: Message.TextMessage) {
+  for (const entity of entities ?? []) {
+    if (entity.type !== 'url') continue
+    yield text.slice(entity.offset, entity.offset + entity.length)
+  }
+}
+
+async function getProducts(message: Message.TextMessage) {
+  const products: string[] = getProductCodeList(message.text)
+  for (const url of getURLs(message)) {
+    const code = await getProductCodeFromURL(url)
+    if (code) products.push(code)
+  }
+  return [...new Set(products)]
 }
