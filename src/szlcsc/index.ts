@@ -1,7 +1,6 @@
 import fetch from 'node-fetch'
 import { Composer, Context } from 'telegraf'
-import type { InlineKeyboardMarkup } from 'telegraf/typings/core/types/typegram'
-import type { ExtraReplyMessage } from 'telegraf/typings/telegram-types'
+import type { InlineKeyboardMarkup, MessageEntity } from 'telegraf/typings/core/types/typegram'
 import urlcat from 'urlcat'
 import { getLuckyURL, toReadableNumber } from '../utils'
 import type { ProductIntl } from './types'
@@ -37,8 +36,14 @@ bot.hears(/^(?<code>C(?:\d+))$/i, (ctx) => {
 })
 
 bot.command('/lc', async (ctx) => {
-  const matches = Array.from(ctx.message.text.matchAll(/C\d+/g)).map((match) => match[0])
-  await Promise.all(matches.map((code) => handle(ctx, code)))
+  const { text, reply_to_message } = ctx.message
+  function* getProducts() {
+    yield* getProductCodeList(text)
+    if (reply_to_message && 'text' in reply_to_message) {
+      yield* getProductCodeList(reply_to_message.text)
+    }
+  }
+  await Promise.all([...new Set(getProducts())].map((code) => handle(ctx, code)))
 })
 
 bot.command('/find', async (ctx) => {
@@ -124,4 +129,8 @@ function makeDatasheetPreview(elements: ProductIntl['paramVOList']) {
 
 function makeSimpleList<T>(elements: T[]): [T, T] {
   return [elements[0], elements[elements.length - 1]]
+}
+
+function getProductCodeList(text: string) {
+  return Array.from(text.matchAll(/C\d+/gi)).map((match) => match[0])
 }
