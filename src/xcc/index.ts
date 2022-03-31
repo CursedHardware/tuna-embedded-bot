@@ -44,7 +44,7 @@ bot.command('/pin2pin', async (ctx) => {
   })
 })
 
-async function get<T>(pathname: string, params: ParamMap) {
+async function get<T>(pathname: string, params: ParamMap = {}) {
   const response = await fetch(urlcat('https://app-api.xcc.com', pathname, params))
   const payload: Payload<T> = await response.json()
   if (payload.code !== 200) throw new Error(payload.msg)
