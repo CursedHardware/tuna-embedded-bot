@@ -11,6 +11,7 @@ const bot = new Composer()
 
 bot.on('text', async (ctx, next) => {
   if (ctx.chat.type !== 'private') return next()
+  if (ctx.message.entities?.[0].type === 'bot_command') return next()
   return Promise.all((await getProducts(ctx.message)).map((code) => handle(ctx, code)))
 })
 
