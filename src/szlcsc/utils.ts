@@ -48,7 +48,7 @@ export async function getProductCodeFromURL(input: string) {
   } else if (url.host === 'm.szlcsc.com') {
     const id = url.searchParams.get('productId')
     if (id) return getProductCodeFromId(+id)
-  } else if (url.host === 'lcsc.com') {
+  } else if (url.host === 'www.lcsc.com') {
     const match = /(?<code>C\d+)\.html$/.exec(url.pathname)
     if (match?.groups?.code) return match.groups.code
   }
