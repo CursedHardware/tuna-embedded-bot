@@ -1,9 +1,9 @@
 import fetch from 'node-fetch'
 import { Composer, Context } from 'telegraf'
 import type { InlineKeyboardMarkup, InputMediaPhoto, Message } from 'telegraf/typings/core/types/typegram'
-import { ExtraReplyMessage } from 'telegraf/typings/telegram-types'
+import type { ExtraReplyMessage } from 'telegraf/typings/telegram-types'
 import urlcat from 'urlcat'
-import { getKeyword, getLuckyURL, toReadableNumber } from '../utils'
+import { getEntities, getKeyword, getLuckyURL, toReadableNumber } from '../utils'
 import type { ProductIntl } from './types'
 import { getInStock, getPackage, getProductCodeFromURL, getProductFromChina, search } from './utils'
 
@@ -115,19 +115,12 @@ function makeSimpleList<T>(elements: T[]): [T, T] {
 }
 
 function getProductCodeList(text: string) {
-  return Array.from(text.matchAll(/C\d+/gi)).map((match) => match[0])
-}
-
-function* getURLs({ text, entities }: Message.TextMessage) {
-  for (const entity of entities ?? []) {
-    if (entity.type !== 'url') continue
-    yield text.slice(entity.offset, entity.offset + entity.length)
-  }
+  return Array.from(text.matchAll(/\b(C\d+)\b/gi)).map((match) => match[1])
 }
 
 async function getProducts(message: Message.TextMessage) {
   const products: string[] = getProductCodeList(message.text)
-  for (const url of getURLs(message)) {
+  for (const url of getEntities(message, 'url')) {
     const code = await getProductCodeFromURL(url)
     if (code) products.push(code)
   }

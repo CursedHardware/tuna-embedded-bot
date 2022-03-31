@@ -1,7 +1,7 @@
 import fetch from 'node-fetch'
 import urlcat from 'urlcat'
 import { toReadableNumber } from '../utils'
-import { Payload, ProductChina, ProductIntl, ProductSearch } from './types'
+import type { Payload, ProductChina, ProductIntl, ProductSearch } from './types'
 
 export function getPackage(p: ProductIntl) {
   return `${toReadableNumber(p.minPacketNumber)} ${p.productUnit}/${p.minPacketUnit}`

@@ -2,7 +2,7 @@ import fetch from 'node-fetch'
 import { Composer } from 'telegraf'
 import urlcat from 'urlcat'
 import { getKeyword } from '../utils'
-import { Payload, WareSMDElement } from './types'
+import type { Payload, WareSMDElement } from './types'
 
 const bot = new Composer()
 

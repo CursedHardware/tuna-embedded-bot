@@ -1,4 +1,4 @@
-import { Message } from 'telegraf/typings/core/types/typegram'
+import type { Message, MessageEntity } from 'telegraf/typings/core/types/typegram'
 import urlcat from 'urlcat'
 
 export function getKeyword({ text, entities }: Message.TextMessage) {
@@ -7,6 +7,13 @@ export function getKeyword({ text, entities }: Message.TextMessage) {
   const keyword = text.slice(entity.offset + entity.length).trim()
   if (keyword.length === 0) throw new Error('No Content')
   return keyword
+}
+
+export function* getEntities({ text, entities }: Message.TextMessage, type: MessageEntity['type']) {
+  for (const entity of entities ?? []) {
+    if (entity.type !== type) continue
+    yield text.slice(entity.offset, entity.offset + entity.length)
+  }
 }
 
 export function getLuckyURL(query: string) {
