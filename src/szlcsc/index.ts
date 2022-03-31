@@ -63,14 +63,24 @@ async function handle(ctx: Context, productCode: string) {
     ],
   }
   if (product.productImages[0]) {
-    await ctx.replyWithPhoto(product.productImages[0], { caption: lines.join('\n'), parse_mode: 'HTML', reply_markup })
-    await ctx.deleteMessage(holdMessage.message_id)
+    await ctx.replyWithPhoto(product.productImages[0], {
+      caption: lines.join('\n'),
+      parse_mode: 'HTML',
+      reply_markup,
+    })
+  } else if (product.pdfUrl) {
+    await ctx.replyWithDocument(product.pdfUrl, {
+      caption: lines.join('\n'),
+      parse_mode: 'HTML',
+      reply_markup,
+    })
   } else {
-    await ctx.telegram.editMessageText(ctx.chat?.id, holdMessage.message_id, undefined, lines.join('\n'), {
+    await ctx.reply(lines.join('\n'), {
       parse_mode: 'HTML',
       reply_markup,
     })
   }
+  await ctx.deleteMessage(holdMessage.message_id)
 }
 
 async function getProductFromIntl(product_code: string): Promise<ProductIntl> {
