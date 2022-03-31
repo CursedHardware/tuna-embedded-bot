@@ -13,17 +13,17 @@ export function getInStock(p: ProductIntl, stock: number) {
   return `${toReadableNumber(stock)} ${p.productUnit} (${packet})`
 }
 
-export async function getProductCodeFromId(productId: number) {
-  const result = await getProductFromChina(productId)
-  return result.code
-}
-
 export async function search(keyword: string) {
   const link = urlcat('https://so.szlcsc.com/phone/p/product/search', { keyword })
   const response = await fetch(link)
   const payload: Payload<{ productList: ProductSearch[] }> = await response.json()
   if (payload.code !== 200) throw new Error(payload.msg)
   return payload.result.productList
+}
+
+export async function getProductCodeFromId(id: number) {
+  const result = await getProductFromChina(id)
+  return result.code
 }
 
 export async function getProductIdFromCode(code: string) {
@@ -33,8 +33,8 @@ export async function getProductIdFromCode(code: string) {
   return matched.id
 }
 
-export async function getProductFromChina(productId: number): Promise<ProductChina> {
-  const response = await fetch(`https://item.szlcsc.com/phone/p/${productId}`)
+export async function getProductFromChina(id: number): Promise<ProductChina> {
+  const response = await fetch(`https://item.szlcsc.com/phone/p/${id}`)
   const payload: Payload<ProductChina> = await response.json()
   if (payload.code !== 200) throw new Error(payload.msg)
   return payload.result
