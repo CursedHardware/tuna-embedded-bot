@@ -9,12 +9,17 @@ const HOST = 'https://www.semiee.com'
 const HOST_API = urlcat(HOST, '/bdxx-api/chip')
 
 export async function search(model: string, pageIndex = 0, pageSize = 10) {
-  return get<SearchedResult[]>('/search', { pageIndex, pageSize, model })
+  return get<SearchedResult[]>('/search', { model, pageIndex, pageSize })
 }
 
 export async function handle(ctx: Context, id: string) {
-  const product = await get<Product>(urlcat('/detail/:id', { id }))
-  const lines = [product.brand_name, product.model, ...(await getDatasheet(id))]
+  const product = await get<Product>('/detail/:id', { id })
+  // prettier-ignore
+  const lines = [
+    product.brand_name,
+    product.model,
+    ...(await getDatasheet(id)),
+  ]
   const reply_markup: InlineKeyboardMarkup = {
     inline_keyboard: [
       [
