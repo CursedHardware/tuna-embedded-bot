@@ -4,7 +4,7 @@ import urlcat from 'urlcat'
 import { getKeyword } from '../utils'
 import type { Payload, WareSMDElement } from './types'
 
-const bot = new Composer()
+export const bot = new Composer()
 
 bot.command('/smd', async (ctx) => {
   const reply_to_message_id = ctx.message.message_id
@@ -50,5 +50,3 @@ bot.command('/pin2pin', async (ctx) => {
     reply_to_message_id,
   })
 })
-
-export default bot
