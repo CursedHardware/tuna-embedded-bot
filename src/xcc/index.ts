@@ -1,54 +1,52 @@
 import fetch from 'node-fetch'
 import { Composer } from 'telegraf'
-import urlcat from 'urlcat'
+import urlcat, { ParamMap } from 'urlcat'
 import { getKeyword } from '../utils'
-import { Payload, WareSMDElement } from './types'
+import type { Payload } from './types'
 
-const bot = new Composer()
+export const bot = new Composer()
 
 bot.command('/smd', async (ctx) => {
-  const reply_to_message_id = ctx.message.message_id
-  const searchContent = getKeyword(ctx.message)
-  const link = urlcat('https://app-api.xcc.com/search/wareSmd', {
-    searchContent,
+  interface Row {
+    smd: string
+    title: string
+  }
+  const { rows } = await get<{ rows: Row[] }>('/search/wareSmd', {
+    searchContent: getKeyword(ctx.message),
     pageIndex: 1,
     pageSize: 50,
   })
-  const response = await fetch(link)
-  const payload: Payload<{ rows: WareSMDElement[] }> = await response.json()
-  if (payload.code !== 200) throw new Error(payload.msg)
-  const { rows } = payload.data
   if (rows.length === 0) throw new Error('Not Found')
-  const lines = rows.map((d) => `<pre>${d.smd}: ${d.title}</pre>`)
+  const lines = rows.map((r) => `<pre>${r.smd}: ${r.title}</pre>`)
   await ctx.reply([...new Set(lines)].join('\n'), {
     parse_mode: 'HTML',
-    reply_to_message_id,
+    reply_to_message_id: ctx.message.message_id,
   })
 })
 
 bot.command('/pin2pin', async (ctx) => {
-  const reply_to_message_id = ctx.message.message_id
-  const searchContent = getKeyword(ctx.message)
-  const link = urlcat('https://app-api.xcc.com/search/ware-pin', {
-    searchContent,
-    pageIndex: 1,
-    pageSize: 50,
-  })
-  const response = await fetch(link)
   interface Row {
     level: number
     pinTitle: string
   }
-  const payload: Payload<{ pageResult: { rows: Row[] } }> = await response.json()
-  if (payload.code !== 200) throw new Error(payload.msg)
-  const { rows } = payload.data.pageResult
+  const { pageResult } = await get<{ pageResult: { rows: Row[] } }>('/search/ware-pin', {
+    searchContent: getKeyword(ctx.message),
+    pageIndex: 1,
+    pageSize: 50,
+  })
+  const rows = pageResult.rows.filter((r) => r.level === 1)
   if (rows.length === 0) throw new Error('Not Found')
-  const lines = rows.filter((d) => d.level === 1).map((d) => `<pre>${d.pinTitle.replace(/ /g, '-')}</pre>`)
-  lines.sort((a, b) => a.localeCompare(b, 'en-US', { numeric: true }))
+  rows.sort((a, b) => a.pinTitle.localeCompare(b.pinTitle, 'en-US', { numeric: true }))
+  const lines = rows.map((d) => `<pre>${d.pinTitle.replace(/ /g, '-')}</pre>`)
   await ctx.reply([...new Set(lines)].join('\n'), {
     parse_mode: 'HTML',
-    reply_to_message_id,
+    reply_to_message_id: ctx.message.message_id,
   })
 })
 
-export default bot
+async function get<T>(pathname: string, params: ParamMap = {}) {
+  const response = await fetch(urlcat('https://app-api.xcc.com', pathname, params))
+  const payload: Payload<T> = await response.json()
+  if (payload.code !== 200) throw new Error(payload.msg)
+  return payload.data
+}

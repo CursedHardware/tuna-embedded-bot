@@ -28,7 +28,7 @@ export interface ProductChina {
   param: Record<string, string> | null
 }
 
-export interface ProductSearch {
+export interface SearchedProduct {
   id: number
   code: string
 }

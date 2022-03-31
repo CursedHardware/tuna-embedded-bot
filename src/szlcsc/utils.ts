@@ -1,7 +1,7 @@
 import fetch from 'node-fetch'
-import urlcat from 'urlcat'
 import { toReadableNumber } from '../utils'
-import { Payload, ProductChina, ProductIntl, ProductSearch } from './types'
+import { search } from './handler'
+import type { Payload, ProductChina, ProductIntl } from './types'
 
 export function getPackage(p: ProductIntl) {
   return `${toReadableNumber(p.minPacketNumber)} ${p.productUnit}/${p.minPacketUnit}`
@@ -11,14 +11,6 @@ export function getInStock(p: ProductIntl, stock: number) {
   if (stock === 0) return 'Out of Stock'
   const packet = `${toReadableNumber(stock / p.minPacketNumber)} ${p.minPacketUnit}`
   return `${toReadableNumber(stock)} ${p.productUnit} (${packet})`
-}
-
-export async function search(keyword: string) {
-  const link = urlcat('https://so.szlcsc.com/phone/p/product/search', { keyword })
-  const response = await fetch(link)
-  const payload: Payload<{ productList: ProductSearch[] }> = await response.json()
-  if (payload.code !== 200) throw new Error(payload.msg)
-  return payload.result.productList
 }
 
 export async function getProductCodeFromId(id: number) {
