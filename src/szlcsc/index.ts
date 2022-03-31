@@ -53,9 +53,12 @@ export default bot
 
 async function handle(ctx: Context, productCode: string) {
   productCode = productCode.toUpperCase()
+  const holdMessage = await ctx.reply(`Reading ${productCode}`, {
+    parse_mode: 'HTML',
+    reply_to_message_id: ctx.message?.message_id,
+  })
   const product = await getProductFromIntl(productCode)
   const productChina = await getProductFromChina(product.productId)
-  const reply_to_message_id = ctx.message?.message_id
   const lines = [
     `Brand: <code>${product.brandNameEn}</code>`,
     `Model: <code>${product.productModel}</code>`,
@@ -79,15 +82,14 @@ async function handle(ctx: Context, productCode: string) {
       [{ text: 'Datasheet', url: product.pdfUrl ? product.pdfUrl : getLuckyURL(`${product.brandNameEn} ${product.productModel} datasheet filetype:pdf`) }],
     ],
   }
-  const extra: ExtraReplyMessage = {
-    parse_mode: 'HTML',
-    reply_to_message_id,
-    reply_markup,
-  }
   if (product.productImages[0]) {
-    return ctx.replyWithPhoto({ url: product.productImages[0] }, { caption: lines.join('\n'), ...extra })
+    await ctx.replyWithPhoto(product.productImages[0], { caption: lines.join('\n'), parse_mode: 'HTML', reply_markup })
+    await ctx.deleteMessage(holdMessage.message_id)
   } else {
-    return ctx.reply(lines.join('\n'), extra)
+    await ctx.telegram.editMessageText(ctx.chat?.id, holdMessage.message_id, undefined, lines.join('\n'), {
+      parse_mode: 'HTML',
+      reply_markup,
+    })
   }
 }
 
