@@ -1,7 +1,8 @@
 #!/bin/bash
-set -xeuo pipefail
-
+PATH="$(npm bin):$PATH"
 source .env
+
+set -xeuo pipefail
 
 rm -vrf dist dist.zip
 ncc build src/index.ts --minify

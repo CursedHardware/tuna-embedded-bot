@@ -1,5 +1,6 @@
 import { Composer, Telegraf } from 'telegraf'
 import SZLCSC from './szlcsc'
+import XCC from './xcc'
 
 export const bot = new Telegraf(process.env.BOT_TOKEN ?? '')
 
@@ -29,4 +30,5 @@ bot.use(async (ctx, next) => {
   }
 })
 
+bot.use(XCC)
 bot.use(SZLCSC)

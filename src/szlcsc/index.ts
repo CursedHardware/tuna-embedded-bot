@@ -3,7 +3,7 @@ import { Composer, Context } from 'telegraf'
 import type { InlineKeyboardMarkup, InputMediaPhoto, Message } from 'telegraf/typings/core/types/typegram'
 import { ExtraReplyMessage } from 'telegraf/typings/telegram-types'
 import urlcat from 'urlcat'
-import { getLuckyURL, toReadableNumber } from '../utils'
+import { getKeyword, getLuckyURL, toReadableNumber } from '../utils'
 import type { ProductIntl } from './types'
 import { getInStock, getPackage, getProductCodeFromURL, getProductFromChina, search } from './utils'
 
@@ -24,16 +24,14 @@ bot.command('/lc', async (ctx) => {
 })
 
 bot.command('/find', async (ctx) => {
-  const { text, entities } = ctx.message
-  const keyword = text.slice(entities![0].offset + entities![0].length).trim()
-  const products = await search(keyword)
+  const products = await search(getKeyword(ctx.message))
   if (!products?.[0]) throw new Error('Not Found')
   return handle(ctx, products[0].code)
 })
 
 export default bot
 
-async function handle(ctx: Context, productCode: string) {
+export async function handle(ctx: Context, productCode: string) {
   productCode = productCode.toUpperCase()
   const product = await getProductFromIntl(productCode)
   const productChina = await getProductFromChina(product.productId)
