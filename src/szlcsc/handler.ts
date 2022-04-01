@@ -56,7 +56,8 @@ export async function handle(ctx: Context, productCode: string) {
       await ctx.replyWithMediaGroup(photos, extra)
     }
     if (pdfSource) {
-      await ctx.replyWithDocument({ source: pdfSource, filename: path.basename(product.pdfUrl) }, { caption, ...extra })
+      const filename = `${product.productCode}-${product.productModel}.pdf`
+      await ctx.replyWithDocument({ source: pdfSource, filename }, { caption, ...extra })
     } else {
       await ctx.reply(caption, extra)
     }
