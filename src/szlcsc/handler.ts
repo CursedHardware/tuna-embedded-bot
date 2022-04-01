@@ -3,7 +3,7 @@ import { Context, Markup } from 'telegraf'
 import type { InputMediaPhoto } from 'telegraf/typings/core/types/typegram'
 import type { ExtraReplyMessage } from 'telegraf/typings/telegram-types'
 import urlcat from 'urlcat'
-import { getPDFCover } from '../pdf'
+import { getPDFCover, isPDF } from '../pdf'
 import { NoResultError, SZLCSCError } from '../types'
 import { download, getDatasheetURL, toReadableNumber } from '../utils'
 import type { Payload, ProductIntl, SearchedProduct } from './types'
@@ -43,7 +43,7 @@ export async function handle(ctx: Context, productCode: string) {
     reply_markup: markup.reply_markup,
     reply_to_message_id: ctx.message?.message_id,
   }
-  const pdfSource = dsURL ? await download(dsURL) : undefined
+  const pdfSource = isPDF(dsURL) ? await download(dsURL) : undefined
   if (ctx.chat?.type === 'private') {
     const photos: InputMediaPhoto[] = []
     if (pdfSource) {
