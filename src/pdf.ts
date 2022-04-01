@@ -17,6 +17,7 @@ export async function getPDFCover(url: string) {
     '-sDEVICE=pngalpha',
     '-dLastPage=1',
     '-dUseCropBox',
+    '-r300',
     inputFile,
   )
   return fs.readFile(outputFile)

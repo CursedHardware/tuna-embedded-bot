@@ -25,7 +25,9 @@ export async function handle(ctx: Context, productCode: string) {
       .map((_) => `${toReadableNumber(_.ladder)}+: ${_.usdPrice}`)
       .join(', ')}`,
   ]
-  lines.push(...makeDatasheetPreview(product.paramVOList))
+  if (product.pdfUrl) {
+    lines.push(...makeDatasheetPreview(product.paramVOList))
+  }
   const reply_markup: InlineKeyboardMarkup = {
     inline_keyboard: [
       [
@@ -42,14 +44,14 @@ export async function handle(ctx: Context, productCode: string) {
     reply_to_message_id: ctx.message?.message_id,
   }
   if (ctx.chat?.type === 'private') {
+    const photos: InputMediaPhoto[] = []
+    if (product.pdfUrl) {
+      photos.push({ type: 'photo', media: { source: await getPDFCover(product.pdfUrl) } })
+    }
     if (product.productImages?.length) {
-      const photos: InputMediaPhoto[] = product.productImages.map((media) => ({ type: 'photo', media }))
-      if (product.pdfUrl) {
-        photos.unshift({
-          type: 'photo',
-          media: { source: await getPDFCover(product.pdfUrl) },
-        })
-      }
+      photos.push(...product.productImages.map((media): InputMediaPhoto => ({ type: 'photo', media })))
+    }
+    if (photos.length) {
       await ctx.replyWithMediaGroup(photos, extra)
     }
     if (product.pdfUrl) {
@@ -59,6 +61,8 @@ export async function handle(ctx: Context, productCode: string) {
     }
   } else if (product.productImages[0]) {
     await ctx.replyWithPhoto(product.productImages[0], { caption, ...extra })
+  } else if (product.pdfUrl) {
+    await ctx.replyWithPhoto({ source: await getPDFCover(product.pdfUrl) }, { caption, ...extra })
   } else {
     await ctx.reply(caption, extra)
   }
