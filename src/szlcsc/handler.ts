@@ -80,7 +80,7 @@ export async function search(keyword: string) {
 async function getProductFromIntl(product_code: string): Promise<ProductIntl> {
   const response = await fetch(urlcat('https://wwwapi.lcsc.com/v1/products/detail', { product_code }))
   const payload = await response.json()
-  if (payload?.length === 0) throw new NoResultError()
+  if (Array.isArray(payload)) throw new NoResultError()
   return payload
 }
 
