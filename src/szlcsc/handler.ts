@@ -25,7 +25,9 @@ export async function handle(ctx: Context, productCode: string) {
       .map((_) => `${toReadableNumber(_.ladder)}+: ${_.usdPrice}`)
       .join(', ')}`,
   ]
-  lines.push(...makeDatasheetPreview(product.paramVOList))
+  if (product.pdfUrl) {
+    lines.push(...makeDatasheetPreview(product.paramVOList))
+  }
   const reply_markup: InlineKeyboardMarkup = {
     inline_keyboard: [
       [
@@ -60,7 +62,7 @@ export async function handle(ctx: Context, productCode: string) {
   } else if (product.productImages[0]) {
     await ctx.replyWithPhoto(product.productImages[0], { caption, ...extra })
   } else if (product.pdfUrl) {
-    await ctx.replyWithPhoto({ source: await getPDFCover(product.pdfUrl) }, extra)
+    await ctx.replyWithPhoto({ source: await getPDFCover(product.pdfUrl) }, { caption, ...extra })
   } else {
     await ctx.reply(caption, extra)
   }
