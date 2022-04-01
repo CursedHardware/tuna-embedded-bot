@@ -8,6 +8,7 @@ import { NoResultError, SZLCSCError } from '../types'
 import { download, getDatasheetURL, toReadableNumber } from '../utils'
 import type { Payload, ProductIntl, SearchedProduct } from './types'
 import { getInStock, getPackage, getProductFromChina } from './utils'
+import path from 'path'
 
 export async function handle(ctx: Context, productCode: string) {
   productCode = productCode.toUpperCase()
@@ -18,6 +19,7 @@ export async function handle(ctx: Context, productCode: string) {
     `Brand: <code>${product.brandNameEn}</code>`,
     `Model: <code>${product.productModel}</code>`,
     `Package: <code>${product.encapStandard}</code> (${getPackage(product)})`,
+    `Stock: ${getInStock(product, product.stockNumber)}`,
     `Stock (Jiangsu): ${getInStock(product, product.stockJs)}`,
     `Stock (Shenzhen): ${getInStock(product, product.stockSz)}`,
     `Price List (CNY): ${makeSimpleList(productChina.priceList)
@@ -54,7 +56,7 @@ export async function handle(ctx: Context, productCode: string) {
       await ctx.replyWithMediaGroup(photos, extra)
     }
     if (pdfSource) {
-      await ctx.replyWithDocument({ source: pdfSource }, { caption, ...extra })
+      await ctx.replyWithDocument({ source: pdfSource, filename: path.basename(product.pdfUrl) }, { caption, ...extra })
     } else {
       await ctx.reply(caption, extra)
     }
