@@ -25,13 +25,16 @@ export async function handle(ctx: Context, productCode: string) {
       .map((_) => `${toReadableNumber(_.ladder)}+: ${_.usdPrice}`)
       .join(', ')}`,
   ]
+  const datasheetURL = /\.pdf$/i.test(product.pdfUrl ?? '')
+    ? product.pdfUrl
+    : getLuckyURL(`${product.brandNameEn} ${product.productModel} datasheet filetype:pdf`)
   const reply_markup: InlineKeyboardMarkup = {
     inline_keyboard: [
       [
         { text: product.productCode, url: `https://www.lcsc.com/product-detail/${product.productCode}.html` },
         { text: product.productId.toString(), url: `https://item.szlcsc.com/${product.productId}.html` },
       ],
-      [{ text: 'Datasheet', url: product.pdfUrl ? product.pdfUrl : getLuckyURL(`${product.brandNameEn} ${product.productModel} datasheet filetype:pdf`) }],
+      [{ text: 'Datasheet', url: datasheetURL }],
     ],
   }
   const caption = lines.join('\n')
@@ -43,7 +46,8 @@ export async function handle(ctx: Context, productCode: string) {
   if (ctx.chat?.type === 'private') {
     const photos: InputMediaPhoto[] = []
     if (product.pdfUrl) {
-      photos.push({ type: 'photo', media: { source: await getPDFCover(product.pdfUrl) } })
+      const source = await getPDFCover(product.pdfUrl)
+      if (source) photos.push({ type: 'photo', media: { source } })
     }
     if (product.productImages?.length) {
       photos.push(...product.productImages.map((media): InputMediaPhoto => ({ type: 'photo', media })))
@@ -51,15 +55,13 @@ export async function handle(ctx: Context, productCode: string) {
     if (photos.length) {
       await ctx.replyWithMediaGroup(photos, extra)
     }
-    if (product.pdfUrl) {
+    if (/\.pdf$/i.test(product.pdfUrl ?? '')) {
       await ctx.replyWithDocument(product.pdfUrl, { caption, ...extra })
     } else {
       await ctx.reply(caption, extra)
     }
   } else if (product.productImages[0]) {
     await ctx.replyWithPhoto(product.productImages[0], { caption, ...extra })
-  } else if (product.pdfUrl) {
-    await ctx.replyWithPhoto({ source: await getPDFCover(product.pdfUrl) }, { caption, ...extra })
   } else {
     await ctx.reply(caption, extra)
   }

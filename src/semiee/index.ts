@@ -35,13 +35,10 @@ export async function handle(ctx: Context, id: string) {
     reply_markup,
   }
   if (ctx.chat?.type === 'private') {
-    await ctx.replyWithPhoto(
-      { source: await getPDFCover(product.dsFile.path) },
-      {
-        ...extra,
-        reply_markup: undefined,
-      }
-    )
+    const source = await getPDFCover(product.dsFile.path)
+    if (source) {
+      await ctx.replyWithPhoto({ source }, { ...extra, reply_markup: undefined })
+    }
     // prettier-ignore
     await ctx.replyWithDocument(
       { url: product.dsFile.path, filename: product.dsFile.name },

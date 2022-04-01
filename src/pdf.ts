@@ -4,22 +4,12 @@ import fs from 'fs/promises'
 import { spawn } from 'child_process'
 
 export async function getPDFCover(url: string) {
+  if (!/\.pdf$/i.test(url)) return
   const response = await fetch(url)
   const content = Buffer.from(await response.arrayBuffer())
   const inputFile = await tempy.write(content, { extension: '.pdf' })
   const outputFile = tempy.file({ extension: '.png' })
-  // prettier-ignore
-  await exec(
-    'gs',
-    '-q',
-    '-o',
-    outputFile,
-    '-sDEVICE=pngalpha',
-    '-dLastPage=1',
-    '-dUseCropBox',
-    '-r300',
-    inputFile,
-  )
+  await exec('gs', '-q', '-o', outputFile, '-sDEVICE=pngalpha', '-dLastPage=1', '-dUseCropBox', '-r300', inputFile)
   return fs.readFile(outputFile)
 }
 
@@ -33,14 +23,8 @@ function exec(...commands: string[]) {
       if (p.exitCode === 0) {
         resolve()
       } else {
-        reject(new ExitError(code))
+        reject(code)
       }
     })
   })
-}
-
-class ExitError extends Error {
-  constructor(code: number) {
-    super(`exit code: ${code}`)
-  }
 }
