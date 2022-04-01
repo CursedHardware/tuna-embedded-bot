@@ -1,11 +1,17 @@
 import type { Message, MessageEntity } from 'telegraf/typings/core/types/typegram'
 import urlcat from 'urlcat'
+import { NoResultError } from './types'
+
+export function isBotCommand({ entities }: Message.TextMessage) {
+  const entity = entities?.find((entity) => entity.type === 'bot_command')
+  return entity?.offset === 0
+}
 
 export function getKeyword({ text, entities }: Message.TextMessage) {
   const entity = entities?.[0]
-  if (entity?.type !== 'bot_command') throw new Error('Not a command')
+  if (entity?.type !== 'bot_command') throw new SyntaxError()
   const keyword = text.slice(entity.offset + entity.length).trim()
-  if (keyword.length === 0) throw new Error('No Content')
+  if (keyword.length === 0) throw new NoResultError()
   return keyword
 }
 

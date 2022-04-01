@@ -22,10 +22,12 @@ export const limitGroupChatIDs = (...chatIDs: number[]) => {
   })
 }
 
-export const ErrorHandler = Composer.catch((error, ctx) => {
-  console.error(`Error`, error)
-  return ctx.reply(`<pre>${error}</pre>`, {
-    parse_mode: 'HTML',
-    reply_to_message_id: ctx.message?.message_id,
+export const ErrorHandler = Composer.unwrap(async (ctx, next) => {
+  await next().catch((reason) => {
+    console.error('Error', reason)
+    return ctx.reply(`<pre>${reason}</pre>`, {
+      parse_mode: 'HTML',
+      reply_to_message_id: ctx.message?.message_id,
+    })
   })
 })

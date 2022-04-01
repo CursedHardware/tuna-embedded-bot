@@ -13,7 +13,7 @@ bot.use(limitGroupChatIDs(
 ))
 
 bot.use(Console)
-bot.use(ErrorHandler)
 bot.use(Finder)
 bot.use(SZLCSC)
 bot.use(XCC)
+bot.use(ErrorHandler)
