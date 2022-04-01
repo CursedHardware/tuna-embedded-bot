@@ -25,9 +25,6 @@ export async function handle(ctx: Context, productCode: string) {
       .map((_) => `${toReadableNumber(_.ladder)}+: ${_.usdPrice}`)
       .join(', ')}`,
   ]
-  if (product.pdfUrl) {
-    lines.push(...makeDatasheetPreview(product.paramVOList))
-  }
   const reply_markup: InlineKeyboardMarkup = {
     inline_keyboard: [
       [
