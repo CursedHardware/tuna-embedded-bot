@@ -2,7 +2,7 @@ import fetch, { RequestInit } from 'node-fetch'
 import { Context, Markup } from 'telegraf'
 import type { ExtraReplyMessage } from 'telegraf/typings/telegram-types'
 import urlcat, { ParamMap } from 'urlcat'
-import { getPDFCover } from '../pdf'
+import { getPDFCover, isPDF } from '../pdf'
 import { NoResultError, SemieeError } from '../types'
 import { download, getDatasheetURL } from '../utils'
 import type { Payload, Product, SearchedResult } from './types'
@@ -30,7 +30,7 @@ export async function handle(ctx: Context, id: string) {
     reply_to_message_id: ctx.message?.message_id,
     reply_markup: markup.reply_markup,
   }
-  if (ctx.chat?.type === 'private' && dsURL) {
+  if (ctx.chat?.type === 'private' && isPDF(dsURL)) {
     const source = await download(dsURL)
     await ctx.replyWithPhoto({ source: await getPDFCover(source) }, { ...extra, reply_markup: undefined })
     await ctx.replyWithDocument({ source, filename: product.dsFile?.name ?? `${product.model}.pdf` }, { ...extra, caption })
