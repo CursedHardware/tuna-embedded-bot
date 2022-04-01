@@ -3,6 +3,7 @@ import { Context } from 'telegraf'
 import type { InlineKeyboardMarkup } from 'telegraf/typings/core/types/typegram'
 import type { ExtraReplyMessage } from 'telegraf/typings/telegram-types'
 import urlcat, { ParamMap } from 'urlcat'
+import { getPDFCover } from '../pdf'
 import type { Payload, Product, SearchedResult } from './types'
 
 const HOST = 'https://www.semiee.com'
@@ -34,6 +35,13 @@ export async function handle(ctx: Context, id: string) {
     reply_markup,
   }
   if (ctx.chat?.type === 'private') {
+    await ctx.replyWithPhoto(
+      { source: await getPDFCover(product.dsFile.path) },
+      {
+        ...extra,
+        reply_markup: undefined,
+      }
+    )
     // prettier-ignore
     await ctx.replyWithDocument(
       { url: product.dsFile.path, filename: product.dsFile.name },

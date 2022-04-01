@@ -3,6 +3,7 @@ import { Context } from 'telegraf'
 import type { InlineKeyboardMarkup, InputMediaPhoto } from 'telegraf/typings/core/types/typegram'
 import type { ExtraReplyMessage } from 'telegraf/typings/telegram-types'
 import urlcat from 'urlcat'
+import { getPDFCover } from '../pdf'
 import { getLuckyURL, toReadableNumber } from '../utils'
 import type { Payload, ProductIntl, SearchedProduct } from './types'
 import { getInStock, getPackage, getProductFromChina } from './utils'
@@ -43,6 +44,12 @@ export async function handle(ctx: Context, productCode: string) {
   if (ctx.chat?.type === 'private') {
     if (product.productImages?.length) {
       const photos: InputMediaPhoto[] = product.productImages.map((media) => ({ type: 'photo', media }))
+      if (product.pdfUrl) {
+        photos.unshift({
+          type: 'photo',
+          media: { source: await getPDFCover(product.pdfUrl) },
+        })
+      }
       await ctx.replyWithMediaGroup(photos, extra)
     }
     if (product.pdfUrl) {
