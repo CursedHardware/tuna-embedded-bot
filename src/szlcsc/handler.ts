@@ -13,6 +13,7 @@ export async function handle(ctx: Context, productCode: string) {
   const product = await getProductFromIntl(productCode)
   const productChina = await getProductFromChina(product.productId)
   const lines = [
+    `Part#: <code>${product.productCode}</code>`,
     `Brand: <code>${product.brandNameEn}</code>`,
     `Model: <code>${product.productModel}</code>`,
     `Package: <code>${product.encapStandard}</code> (${getPackage(product)})`,

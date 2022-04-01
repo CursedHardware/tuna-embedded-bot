@@ -6,15 +6,8 @@ export async function group(ctx: Context, text: string, callback: () => Promise<
     parse_mode: 'HTML',
     reply_to_message_id: ctx.message?.message_id,
   })
-  const startTime = Date.now()
-  const intervalId = setInterval(() => {
-    const endTime = Date.now()
-    const duration = ((endTime - startTime) / 1000) | 0
-    ctx.telegram.editMessageText(ctx.chat?.id, holdMessage.message_id, undefined, `${text} (${duration}s)`)
-  }, 1000)
   try {
     await callback()
-    clearTimeout(intervalId)
   } finally {
     await ctx.deleteMessage(holdMessage.message_id)
   }
