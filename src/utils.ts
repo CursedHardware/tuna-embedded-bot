@@ -20,6 +20,12 @@ export function getLuckyURL(query: string) {
   return urlcat('https://duckduckgo.com', { q: `! ${query}` })
 }
 
+export function getDatasheetURL(url: string | null | undefined, ...keywords: string[]) {
+  if (url && /\.pdf$/i.test(url)) return url
+  const query = [...keywords, 'datasheet', 'filetype:pdf']
+  return getLuckyURL(query.join(' '))
+}
+
 export function toReadableNumber(input: number, base = 1000) {
   if (input === 0) return '0'
   if (input < 1) return input.toFixed(3)

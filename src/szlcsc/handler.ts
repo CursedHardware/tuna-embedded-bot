@@ -1,10 +1,10 @@
 import fetch from 'node-fetch'
-import { Context } from 'telegraf'
-import type { InlineKeyboardMarkup, InputMediaPhoto } from 'telegraf/typings/core/types/typegram'
+import { Context, Markup } from 'telegraf'
+import type { InputMediaPhoto } from 'telegraf/typings/core/types/typegram'
 import type { ExtraReplyMessage } from 'telegraf/typings/telegram-types'
 import urlcat from 'urlcat'
 import { getPDFCover } from '../pdf'
-import { getLuckyURL, toReadableNumber } from '../utils'
+import { getDatasheetURL, toReadableNumber } from '../utils'
 import type { Payload, ProductIntl, SearchedProduct } from './types'
 import { getInStock, getPackage, getProductFromChina } from './utils'
 
@@ -25,22 +25,18 @@ export async function handle(ctx: Context, productCode: string) {
       .map((_) => `${toReadableNumber(_.ladder)}+: ${_.usdPrice}`)
       .join(', ')}`,
   ]
-  const datasheetURL = /\.pdf$/i.test(product.pdfUrl ?? '')
-    ? product.pdfUrl
-    : getLuckyURL(`${product.brandNameEn} ${product.productModel} datasheet filetype:pdf`)
-  const reply_markup: InlineKeyboardMarkup = {
-    inline_keyboard: [
-      [
-        { text: product.productCode, url: `https://www.lcsc.com/product-detail/${product.productCode}.html` },
-        { text: product.productId.toString(), url: `https://item.szlcsc.com/${product.productId}.html` },
-      ],
-      [{ text: 'Datasheet', url: datasheetURL }],
+  const markup = Markup.inlineKeyboard(
+    [
+      Markup.button.url(product.productCode, `https://www.lcsc.com/product-detail/${product.productCode}.html`),
+      Markup.button.url('立创商城', `https://item.szlcsc.com/${product.productId}.html`),
+      Markup.button.url('Datasheet', getDatasheetURL(product.pdfUrl, product.brandNameEn, product.productModel)),
     ],
-  }
+    { columns: 2 }
+  )
   const caption = lines.join('\n')
   const extra: ExtraReplyMessage = {
     parse_mode: 'HTML',
-    reply_markup,
+    reply_markup: markup.reply_markup,
     reply_to_message_id: ctx.message?.message_id,
   }
   if (ctx.chat?.type === 'private') {
@@ -79,27 +75,6 @@ async function getProductFromIntl(product_code: string): Promise<ProductIntl> {
   const payload = await response.json()
   if (payload?.length === 0) throw new Error('Not Found')
   return payload
-}
-
-function makeDatasheetPreview(elements: ProductIntl['paramVOList']) {
-  if (!elements) return []
-  elements = elements.filter(({ paramValueEn: value }) => !(value === '-' || value === '0'))
-  if (elements.length === 0) return []
-  // elements.sort((a, b) => a.paramNameEn.localeCompare(b.paramNameEn, 'zh-CN'))
-  return [
-    'Datasheet:',
-    ...elements.map((element) =>
-      `${element.paramNameEn}: ${element.paramValueEn}`
-        .replace(/\uFF08/g, '(')
-        .replace(/\uFF09/g, ')')
-        .replace(/KB/g, 'kB')
-        .replace(/MHz/g, 'Mhz')
-        .replace(/FLASH/g, 'Flash')
-        .replace(/(\d+)KX(\d+)/g, '$1k x $2')
-        .replace(/(\d+(?:\.\d+)?)V/g, '$1v')
-        .replace(/\xAE/g, '')
-    ),
-  ]
 }
 
 function makeSimpleList<T>(elements: T[]): [T, T] {
