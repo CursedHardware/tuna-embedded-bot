@@ -50,13 +50,14 @@ export async function handle(ctx: Context, productCode: string) {
       photos.push({ type: 'photo', media: { source: await getPDFCover(pdfSource) } })
     }
     if (product.productImages?.length) {
-      photos.push(...product.productImages.map((media): InputMediaPhoto => ({ type: 'photo', media })))
+      const images = await Promise.all(product.productImages.map(download))
+      photos.push(...images.map((source): InputMediaPhoto => ({ type: 'photo', media: { source } })))
     }
     if (photos.length) {
       await ctx.replyWithMediaGroup(photos, extra)
     }
     if (pdfSource) {
-      const filename = `${product.productCode}-${product.productModel}.pdf`
+      const filename = `${product.productCode}_${product.productModel}.pdf`
       await ctx.replyWithDocument({ source: pdfSource, filename }, { caption, ...extra })
     } else {
       await ctx.reply(caption, extra)
