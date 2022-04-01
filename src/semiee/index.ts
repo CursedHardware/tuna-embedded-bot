@@ -2,9 +2,9 @@ import fetch, { RequestInit } from 'node-fetch'
 import { Context, Markup } from 'telegraf'
 import type { ExtraReplyMessage } from 'telegraf/typings/telegram-types'
 import urlcat, { ParamMap } from 'urlcat'
-import { getPDFCover } from '../pdf'
+import { getPDFCover, isPDF } from '../pdf'
 import { NoResultError, SemieeError } from '../types'
-import { getDatasheetURL } from '../utils'
+import { download, getDatasheetURL } from '../utils'
 import type { Payload, Product, SearchedResult } from './types'
 
 const HOST = 'https://www.semiee.com'
@@ -32,16 +32,10 @@ export async function handle(ctx: Context, id: string) {
     reply_to_message_id: ctx.message?.message_id,
     reply_markup: markup.reply_markup,
   }
-  if (ctx.chat?.type === 'private' && product.dsFile) {
-    const source = await getPDFCover(product.dsFile.path)
-    if (source) {
-      await ctx.replyWithPhoto({ source }, { ...extra, reply_markup: undefined })
-    }
-    // prettier-ignore
-    await ctx.replyWithDocument(
-      { url: product.dsFile.path, filename: product.dsFile.name },
-      { caption, ...extra },
-    )
+  if (ctx.chat?.type === 'private' && product.dsFile && isPDF(product.dsFile.path)) {
+    const source = await download(product.dsFile.path)
+    await ctx.replyWithPhoto({ source: await getPDFCover(source) }, { ...extra, reply_markup: undefined })
+    await ctx.replyWithDocument({ source, filename: product.dsFile.name }, { ...extra, caption })
   } else {
     await ctx.reply(caption, extra)
   }

@@ -3,9 +3,9 @@ import { Context, Markup } from 'telegraf'
 import type { InputMediaPhoto } from 'telegraf/typings/core/types/typegram'
 import type { ExtraReplyMessage } from 'telegraf/typings/telegram-types'
 import urlcat from 'urlcat'
-import { getPDFCover } from '../pdf'
+import { getPDFCover, isPDF } from '../pdf'
 import { NoResultError, SZLCSCError } from '../types'
-import { getDatasheetURL, toReadableNumber } from '../utils'
+import { download, getDatasheetURL, toReadableNumber } from '../utils'
 import type { Payload, ProductIntl, SearchedProduct } from './types'
 import { getInStock, getPackage, getProductFromChina } from './utils'
 
@@ -41,11 +41,11 @@ export async function handle(ctx: Context, productCode: string) {
     reply_markup: markup.reply_markup,
     reply_to_message_id: ctx.message?.message_id,
   }
+  const pdfSource = isPDF(product.pdfUrl) ? await download(product.pdfUrl) : undefined
   if (ctx.chat?.type === 'private') {
     const photos: InputMediaPhoto[] = []
-    if (product.pdfUrl) {
-      const source = await getPDFCover(product.pdfUrl)
-      if (source) photos.push({ type: 'photo', media: { source } })
+    if (pdfSource) {
+      photos.push({ type: 'photo', media: { source: await getPDFCover(pdfSource) } })
     }
     if (product.productImages?.length) {
       photos.push(...product.productImages.map((media): InputMediaPhoto => ({ type: 'photo', media })))
@@ -53,8 +53,8 @@ export async function handle(ctx: Context, productCode: string) {
     if (photos.length) {
       await ctx.replyWithMediaGroup(photos, extra)
     }
-    if (/\.pdf$/i.test(product.pdfUrl ?? '')) {
-      await ctx.replyWithDocument(product.pdfUrl, { caption, ...extra })
+    if (pdfSource) {
+      await ctx.replyWithDocument({ source: pdfSource }, { caption, ...extra })
     } else {
       await ctx.reply(caption, extra)
     }
