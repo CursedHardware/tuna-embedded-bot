@@ -1,6 +1,7 @@
 import fetch from 'node-fetch'
 import { Composer } from 'telegraf'
 import urlcat, { ParamMap } from 'urlcat'
+import { NoResultError, XCCError } from '../types'
 import { getKeyword } from '../utils'
 import type { Payload } from './types'
 
@@ -16,7 +17,7 @@ bot.command('/smd', async (ctx) => {
     pageIndex: 1,
     pageSize: 50,
   })
-  if (rows.length === 0) throw new Error('Not Found')
+  if (rows.length === 0) throw new NoResultError()
   const lines = rows.map((r) => `<pre>${r.smd}: ${r.title}</pre>`)
   await ctx.reply([...new Set(lines)].join('\n'), {
     parse_mode: 'HTML',
@@ -35,7 +36,7 @@ bot.command('/pin2pin', async (ctx) => {
     pageSize: 50,
   })
   const rows = pageResult.rows.filter((r) => r.level === 1)
-  if (rows.length === 0) throw new Error('Not Found')
+  if (rows.length === 0) throw new NoResultError()
   rows.sort((a, b) => a.pinTitle.localeCompare(b.pinTitle, 'en-US', { numeric: true }))
   const lines = rows.map((d) => `<pre>${d.pinTitle.replace(/ /g, '-')}</pre>`)
   await ctx.reply([...new Set(lines)].join('\n'), {
@@ -47,6 +48,6 @@ bot.command('/pin2pin', async (ctx) => {
 async function get<T>(pathname: string, params: ParamMap = {}) {
   const response = await fetch(urlcat('https://app-api.xcc.com', pathname, params))
   const payload: Payload<T> = await response.json()
-  if (payload.code !== 200) throw new Error(payload.msg)
+  if (payload.code !== 200) throw new XCCError(payload.msg)
   return payload.data
 }

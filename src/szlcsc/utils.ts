@@ -1,4 +1,5 @@
 import fetch from 'node-fetch'
+import { NoResultError, SZLCSCError } from '../types'
 import { toReadableNumber } from '../utils'
 import { search } from './handler'
 import type { Payload, ProductChina, ProductIntl } from './types'
@@ -21,14 +22,14 @@ export async function getProductCodeFromId(id: number) {
 export async function getProductIdFromCode(code: string) {
   const products = await search(code)
   const matched = products.find((p) => p.code === code)
-  if (!matched) throw new Error('Not Found')
+  if (!matched) throw new NoResultError()
   return matched.id
 }
 
 export async function getProductFromChina(id: number): Promise<ProductChina> {
   const response = await fetch(`https://item.szlcsc.com/phone/p/${id}`)
   const payload: Payload<ProductChina> = await response.json()
-  if (payload.code !== 200) throw new Error(payload.msg)
+  if (payload.code !== 200) throw new SZLCSCError(payload.msg)
   return payload.result
 }
 

@@ -1,49 +1,49 @@
-import fetch from 'node-fetch'
+import fetch, { RequestInit } from 'node-fetch'
 import { Context, Markup } from 'telegraf'
 import type { ExtraReplyMessage } from 'telegraf/typings/telegram-types'
 import urlcat, { ParamMap } from 'urlcat'
-import { getPDFCover } from '../pdf'
-import { getDatasheetURL } from '../utils'
+import { getPDFCover, isPDF } from '../pdf'
+import { NoResultError, SemieeError } from '../types'
+import { download, getDatasheetURL } from '../utils'
 import type { Payload, Product, SearchedResult } from './types'
 
 const HOST = 'https://www.semiee.com'
 const HOST_API = urlcat(HOST, '/bdxx-api/chip')
 
 export async function search(model: string, pageIndex = 0, pageSize = 10) {
-  return get<SearchedResult[]>('/search', { model, pageIndex, pageSize })
+  const results = await get<SearchedResult[]>('/search', { model, pageIndex, pageSize })
+  if (results.length === 0) throw new NoResultError()
+  return results
 }
 
 export async function handle(ctx: Context, id: string) {
   const product = await get<Product>('/detail/:id', { id })
   const brandName = product.brand_name.split('-', 2)[1]
   const caption = `${brandName} ${product.model}`
-  const markup = Markup.inlineKeyboard([
-    Markup.button.url('Details', urlcat(HOST, '/:id.html', { id })),
-    Markup.button.url('Datasheet', getDatasheetURL(product.dsFile?.path, brandName, product.model)),
-  ])
+  const markup = Markup.inlineKeyboard(
+    [
+      Markup.button.url('半导小芯', urlcat(HOST, '/:id.html', { id })),
+      Markup.button.url('Datasheet', getDatasheetURL(product.dsFile?.path, brandName, product.model)),
+    ],
+    { columns: 1 }
+  )
   const extra: ExtraReplyMessage = {
     parse_mode: 'HTML',
     reply_to_message_id: ctx.message?.message_id,
     reply_markup: markup.reply_markup,
   }
-  if (ctx.chat?.type === 'private' && product.dsFile) {
-    const source = await getPDFCover(product.dsFile.path)
-    if (source) {
-      await ctx.replyWithPhoto({ source }, { ...extra, reply_markup: undefined })
-    }
-    // prettier-ignore
-    await ctx.replyWithDocument(
-      { url: product.dsFile.path, filename: product.dsFile.name },
-      { caption, ...extra },
-    )
+  if (ctx.chat?.type === 'private' && product.dsFile && isPDF(product.dsFile.path)) {
+    const source = await download(product.dsFile.path)
+    await ctx.replyWithPhoto({ source: await getPDFCover(source) }, { ...extra, reply_markup: undefined })
+    await ctx.replyWithDocument({ source, filename: product.dsFile.name }, { ...extra, caption })
   } else {
     await ctx.reply(caption, extra)
   }
 }
 
-async function get<T>(pathname: string, params: ParamMap = {}) {
-  const response = await fetch(urlcat(HOST_API, pathname, params))
+async function get<T>(pathname: string, params: ParamMap = {}, init?: RequestInit) {
+  const response = await fetch(urlcat(HOST_API, pathname, params), init)
   const payload: Payload<T> = await response.json()
-  if (payload.code !== 0) throw new Error(payload.remark)
+  if (payload.code !== 0) throw new SemieeError(payload.remark)
   return payload.result
 }

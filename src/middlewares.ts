@@ -13,8 +13,6 @@ export async function group(ctx: Context, text: string, callback: () => Promise<
   }
 }
 
-export const Console = Composer.log(console.log.bind(console))
-
 export const limitGroupChatIDs = (...chatIDs: number[]) => {
   return Composer.groupChat((ctx, next) => {
     if (chatIDs.includes(ctx.chat?.id ?? Number.NaN)) return next()
@@ -22,10 +20,14 @@ export const limitGroupChatIDs = (...chatIDs: number[]) => {
   })
 }
 
-export const ErrorHandler = Composer.catch((error, ctx) => {
-  console.error(`Error`, error)
-  return ctx.reply(`<pre>${error}</pre>`, {
-    parse_mode: 'HTML',
-    reply_to_message_id: ctx.message?.message_id,
-  })
+export const ErrorHandler = Composer.unwrap(async (ctx, next) => {
+  try {
+    await next()
+  } catch (error) {
+    console.error({ error })
+    return ctx.reply(`<pre>${error}</pre>`, {
+      parse_mode: 'HTML',
+      reply_to_message_id: ctx.message?.message_id,
+    })
+  }
 })
