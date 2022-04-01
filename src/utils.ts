@@ -1,9 +1,11 @@
 import { spawn } from 'child_process'
 import { randomBytes } from 'crypto'
 import fs from 'fs/promises'
+import fetch from 'node-fetch'
 import type { Message, MessageEntity } from 'telegraf/typings/core/types/typegram'
 import urlcat from 'urlcat'
 import { NoResultError } from './types'
+import followRedirects from 'follow-redirects'
 
 export function isBotCommand({ entities }: Message.TextMessage) {
   const entity = entities?.[0]
@@ -29,10 +31,23 @@ export function getLuckyURL(query: string) {
   return urlcat('https://duckduckgo.com', { q: `! ${query}` })
 }
 
-export function getDatasheetURL(url: string | null | undefined, ...keywords: string[]) {
+export async function getDatasheetURL(url: string | null | undefined, brand: string, model: string) {
   if (url && /\.pdf$/i.test(url)) return url
-  const query = [...keywords, 'datasheet', 'filetype:pdf']
-  return getLuckyURL(query.join(' '))
+  const query = ['datasheet', 'filetype:pdf']
+  if (model.length < 5 || /^\d+$/.test(model)) {
+    query.unshift(brand, model)
+  } else {
+    query.unshift(model)
+  }
+  const response = await fetch(getLuckyURL(query.join(' ')))
+  const html = await response.text()
+  const matched = html.match(/'0; url=(?<url>\S+)'/)
+  if (!matched?.groups?.url) return
+  const parsed = new URL(matched.groups.url, 'https://duckduckgo.com')
+  const documentURL = parsed.searchParams.get('uddg')
+  if (!documentURL) return
+  if (documentURL.startsWith('https://duckduckgo.com')) return
+  return getFollowRedirectURL(documentURL)
 }
 
 export function toReadableNumber(input: number, base = 1000) {
@@ -75,5 +90,14 @@ export function exec(...commands: string[]) {
         reject(Buffer.concat(stdout).toString('utf-8'))
       }
     })
+  })
+}
+
+export function getFollowRedirectURL(url: string) {
+  const client = url.startsWith('https:') ? followRedirects.https : followRedirects.http
+  return new Promise<string>((resolve, reject) => {
+    const request = client.request(url, { method: 'HEAD', trackRedirects: true }, (response) => resolve(response.responseUrl))
+    request.on('error', reject)
+    request.end()
   })
 }

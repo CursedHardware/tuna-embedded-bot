@@ -2,7 +2,7 @@ import fetch, { RequestInit } from 'node-fetch'
 import { Context, Markup } from 'telegraf'
 import type { ExtraReplyMessage } from 'telegraf/typings/telegram-types'
 import urlcat, { ParamMap } from 'urlcat'
-import { getPDFCover, isPDF } from '../pdf'
+import { getPDFCover } from '../pdf'
 import { NoResultError, SemieeError } from '../types'
 import { download, getDatasheetURL } from '../utils'
 import type { Payload, Product, SearchedResult } from './types'
@@ -20,11 +20,9 @@ export async function handle(ctx: Context, id: string) {
   const product = await get<Product>('/detail/:id', { id })
   const brandName = product.brand_name.split('-', 2)[1]
   const caption = `${brandName} ${product.model}`
+  const dsURL = await getDatasheetURL(product.dsFile?.path, brandName, product.model)
   const markup = Markup.inlineKeyboard(
-    [
-      Markup.button.url('半导小芯', urlcat(HOST, '/:id.html', { id })),
-      Markup.button.url('Datasheet', getDatasheetURL(product.dsFile?.path, brandName, product.model)),
-    ],
+    [Markup.button.url('半导小芯', urlcat(HOST, '/:id.html', { id })), Markup.button.url('Datasheet', dsURL ?? '', !dsURL)],
     { columns: 1 }
   )
   const extra: ExtraReplyMessage = {
@@ -32,10 +30,10 @@ export async function handle(ctx: Context, id: string) {
     reply_to_message_id: ctx.message?.message_id,
     reply_markup: markup.reply_markup,
   }
-  if (ctx.chat?.type === 'private' && product.dsFile && isPDF(product.dsFile.path)) {
-    const source = await download(product.dsFile.path)
+  if (ctx.chat?.type === 'private' && dsURL) {
+    const source = await download(dsURL)
     await ctx.replyWithPhoto({ source: await getPDFCover(source) }, { ...extra, reply_markup: undefined })
-    await ctx.replyWithDocument({ source, filename: product.dsFile.name }, { ...extra, caption })
+    await ctx.replyWithDocument({ source, filename: product.dsFile?.name ?? `${product.model}.pdf` }, { ...extra, caption })
   } else {
     await ctx.reply(caption, extra)
   }

@@ -2,8 +2,9 @@ import fs from 'fs/promises'
 import tempy from 'tempy'
 import { exec } from './utils'
 
-export function isPDF(input: string | undefined | null) {
-  return /\.pdf$/i.test(input ?? '')
+export function isPDF(input: string | undefined | null): input is string {
+  if (!input) return false
+  return /\.pdf$/i.test(new URL(input).pathname)
 }
 
 export async function getPDFCover(content: Buffer) {

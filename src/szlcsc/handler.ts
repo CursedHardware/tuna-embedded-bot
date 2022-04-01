@@ -3,7 +3,7 @@ import { Context, Markup } from 'telegraf'
 import type { InputMediaPhoto } from 'telegraf/typings/core/types/typegram'
 import type { ExtraReplyMessage } from 'telegraf/typings/telegram-types'
 import urlcat from 'urlcat'
-import { getPDFCover, isPDF } from '../pdf'
+import { getPDFCover } from '../pdf'
 import { NoResultError, SZLCSCError } from '../types'
 import { download, getDatasheetURL, toReadableNumber } from '../utils'
 import type { Payload, ProductIntl, SearchedProduct } from './types'
@@ -28,11 +28,12 @@ export async function handle(ctx: Context, productCode: string) {
       .map((_) => `${toReadableNumber(_.ladder)}+: ${_.usdPrice}`)
       .join(', ')}`,
   ]
+  const dsURL = await getDatasheetURL(product.pdfUrl, product.brandNameEn, product.productModel)
   const markup = Markup.inlineKeyboard(
     [
       Markup.button.url(product.productCode, `https://www.lcsc.com/product-detail/${product.productCode}.html`),
       Markup.button.url('立创商城', `https://item.szlcsc.com/${product.productId}.html`),
-      Markup.button.url('Datasheet', getDatasheetURL(product.pdfUrl, product.brandNameEn, product.productModel)),
+      Markup.button.url('Datasheet', dsURL ?? '', !dsURL),
     ],
     { columns: 2 }
   )
@@ -42,7 +43,7 @@ export async function handle(ctx: Context, productCode: string) {
     reply_markup: markup.reply_markup,
     reply_to_message_id: ctx.message?.message_id,
   }
-  const pdfSource = isPDF(product.pdfUrl) ? await download(product.pdfUrl) : undefined
+  const pdfSource = dsURL ? await download(dsURL) : undefined
   if (ctx.chat?.type === 'private') {
     const photos: InputMediaPhoto[] = []
     if (pdfSource) {
