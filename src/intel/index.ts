@@ -8,7 +8,10 @@ export const bot = new Composer()
 bot.command('/ark', async (ctx) => {
   const query = getKeyword(ctx.message)
   const results = await search(query)
-  const links = results.map((link) => `<a href="${urlcat('https://ark.intel.com', link.prodUrl)}">${link.label}</a>`)
+  const links = results.map(({ prodUrl, label }) => {
+    label = label.replace(/[\xAE\u2122]/g, '')
+    return `<a href="${urlcat('https://ark.intel.com', prodUrl)}">${label}</a>`
+  })
   await ctx.reply(links.join('\n'), {
     parse_mode: 'HTML',
     reply_to_message_id: ctx.message.message_id,

@@ -9,7 +9,7 @@ export const bot = new Composer()
 
 bot.on('text', async (ctx, next) => {
   if (ctx.chat.type !== 'private') return next()
-  if (isBotCommand(ctx.message)) throw new SyntaxError()
+  if (isBotCommand(ctx.message)) return next()
   const products = await getProducts(ctx.message)
   if (!products.length) return next()
   return Promise.all(products.map((code) => group(ctx, `Reading ${code}`, () => handle(ctx, code))))

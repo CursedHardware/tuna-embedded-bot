@@ -6,8 +6,8 @@ import urlcat from 'urlcat'
 import { NoResultError } from './types'
 
 export function isBotCommand({ entities }: Message.TextMessage) {
-  const entity = entities?.find((entity) => entity.type === 'bot_command')
-  return entity?.offset === 0
+  const entity = entities?.[0]
+  return entity?.type === 'bot_command' && entity.offset === 0
 }
 
 export function getKeyword({ text, entities }: Message.TextMessage) {
