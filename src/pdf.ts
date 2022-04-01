@@ -3,7 +3,7 @@ import tempy from 'tempy'
 import { exec } from './utils'
 
 export function isPDF(input: string | undefined | null): input is string {
-  if (!input) return false
+  if (!input || input === '') return false
   return /\.pdf$/i.test(new URL(input).pathname)
 }
 
