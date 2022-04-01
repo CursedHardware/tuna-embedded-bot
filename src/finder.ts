@@ -5,11 +5,11 @@ import * as SZLCSC from './szlcsc'
 import { NoResultError } from './types'
 import { getKeyword } from './utils'
 
-export const Finder = Composer.command('/find', (ctx) => {
+export const Finder = Composer.command('/find', async (ctx) => {
   const keyword = getKeyword(ctx.message)
-  return findSZLCSC(ctx, keyword)
+  await findSZLCSC(ctx, keyword)
     .catch(() => findSEMIEE(ctx, keyword))
-    .catch(() => new NoResultError())
+    .catch(() => Promise.reject(new NoResultError()))
 })
 
 async function findSZLCSC(ctx: Context, keyword: string) {

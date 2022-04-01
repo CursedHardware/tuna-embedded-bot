@@ -11,7 +11,7 @@ const HOST = 'https://www.semiee.com'
 const HOST_API = urlcat(HOST, '/bdxx-api/chip')
 
 export async function search(model: string, pageIndex = 0, pageSize = 10) {
-  const results = await get<SearchedResult[]>('/search', { model, pageIndex, pageSize }, { timeout: 2000 })
+  const results = await get<SearchedResult[]>('/search', { model, pageIndex, pageSize })
   if (results.length === 0) throw new NoResultError()
   return results
 }
