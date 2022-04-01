@@ -10,7 +10,11 @@ bot.command('/ark', async (ctx) => {
   const results = await search(query)
   const links = results.map(({ prodUrl, label }) => {
     label = label.replace(/[\xAE\u2122]/g, '')
-    return `<a href="${urlcat('https://ark.intel.com', prodUrl)}">${label}</a>`
+    const url = new URL(prodUrl, 'https://ark.intel.com')
+    if (url.pathname.endsWith('search.html')) {
+      url.searchParams.set('q', label)
+    }
+    return `<a href="${url.toString()}">${label}</a>`
   })
   await ctx.reply(links.join('\n'), {
     parse_mode: 'HTML',
