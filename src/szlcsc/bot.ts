@@ -1,5 +1,6 @@
 import { Composer } from 'telegraf'
 import type { Message } from 'telegraf/typings/core/types/typegram'
+import { group } from '../middlewares'
 import { getEntities } from '../utils'
 import { handle } from './handler'
 import { getProductCodeFromURL } from './utils'
@@ -9,15 +10,17 @@ const bot = new Composer()
 bot.on('text', async (ctx, next) => {
   if (ctx.chat.type !== 'private') return next()
   if (ctx.message.entities?.[0].type === 'bot_command') return next()
-  return Promise.all((await getProducts(ctx.message)).map((code) => handle(ctx, code)))
+  return Promise.all((await getProducts(ctx.message)).map((code) => group(ctx, `Reading ${code}`, () => handle(ctx, code))))
 })
 
 bot.command('/lc', async (ctx) => {
+  const { via_bot, reply_to_message } = ctx.message
+  if (via_bot) return
   const products = await getProducts(ctx.message)
-  if (ctx.message.reply_to_message && 'text' in ctx.message.reply_to_message) {
-    products.push(...(await getProducts(ctx.message.reply_to_message)))
+  if (reply_to_message && 'text' in reply_to_message) {
+    products.push(...(await getProducts(reply_to_message)))
   }
-  await Promise.all([...new Set(products)].map((code) => handle(ctx, code)))
+  await Promise.all([...new Set(products)].map((code) => group(ctx, `Reading ${code}`, () => handle(ctx, code))))
 })
 
 export default bot
