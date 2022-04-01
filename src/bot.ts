@@ -1,6 +1,6 @@
 import { Telegraf } from 'telegraf'
 import { Finder } from './finder'
-import { Console, ErrorHandler, limitGroupChatIDs } from './handler'
+import { Console, ErrorHandler, limitGroupChatIDs } from './middlewares'
 import { bot as SZLCSC } from './szlcsc'
 import { bot as XCC } from './xcc'
 
