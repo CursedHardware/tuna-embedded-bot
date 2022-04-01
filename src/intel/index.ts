@@ -1,5 +1,4 @@
 import { Composer } from 'telegraf'
-import urlcat from 'urlcat'
 import { getKeyword } from '../utils'
 import { search } from './handler'
 
