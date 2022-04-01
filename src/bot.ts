@@ -3,6 +3,7 @@ import { Finder } from './finder'
 import { ErrorHandler, limitGroupChatIDs } from './middlewares'
 import { bot as SZLCSC } from './szlcsc'
 import { bot as XCC } from './xcc'
+import { bot as Intel } from './intel'
 
 export const bot = new Telegraf(process.env.BOT_TOKEN ?? '')
 
@@ -13,5 +14,6 @@ bot.use(
   ErrorHandler,
   Finder,
   SZLCSC,
-  XCC
+  XCC,
+  Intel
 )

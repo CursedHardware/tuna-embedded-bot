@@ -6,6 +6,14 @@ export class NoResultError extends Error {
   }
 }
 
+export class IntelError extends Error {
+  name = 'IntelError'
+
+  constructor(message: string) {
+    super(message)
+  }
+}
+
 export class SemieeError extends Error {
   name = 'XCCError'
 

@@ -5,7 +5,7 @@ import { getEntities, isBotCommand } from '../utils'
 import { handle } from './handler'
 import { getProductCodeFromURL } from './utils'
 
-const bot = new Composer()
+export const bot = new Composer()
 
 bot.on('text', async (ctx, next) => {
   if (ctx.chat.type !== 'private') return next()
@@ -24,8 +24,6 @@ bot.command('/lc', async (ctx) => {
   }
   await Promise.all([...new Set(products)].map((code) => group(ctx, `Reading ${code}`, () => handle(ctx, code))))
 })
-
-export default bot
 
 async function getProducts(message: Message.TextMessage) {
   const products: string[] = getProductCodeList(message.text)

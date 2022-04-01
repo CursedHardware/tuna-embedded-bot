@@ -8,7 +8,6 @@ import { NoResultError, SZLCSCError } from '../types'
 import { download, getDatasheetURL, toReadableNumber } from '../utils'
 import type { Payload, ProductIntl, SearchedProduct } from './types'
 import { getInStock, getPackage, getProductFromChina } from './utils'
-import path from 'path'
 
 export async function handle(ctx: Context, productCode: string) {
   productCode = productCode.toUpperCase()
