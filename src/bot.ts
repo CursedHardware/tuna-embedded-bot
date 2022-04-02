@@ -1,19 +1,21 @@
 import { Composer, Telegraf } from 'telegraf'
-import { Finder } from './finder'
-import { ErrorHandler, limitGroupChatIDs } from './middlewares'
-import { bot as SZLCSC } from './szlcsc'
-import { bot as XCC } from './xcc'
+import { AnyText, Finder } from './finder'
 import { bot as Intel } from './intel'
+import { bot as SZLCSC } from './szlcsc'
+import { ErrorHandler, limitGroupChatIDs } from './utils/telegraf'
+import { bot as XCC } from './xcc/bot'
 
-export const bot = new Telegraf(process.env.BOT_TOKEN ?? '')
+export const bot = new Telegraf(process.env.BOT_TOKEN ?? '', {
+  handlerTimeout: 840_000,
+})
 
-// prettier-ignore
 bot.use(
-  limitGroupChatIDs(-1001232571812, -1001630828458),
-  Composer.log(console.log.bind(console)),
   ErrorHandler,
+  Composer.log(console.log.bind(console)),
+  limitGroupChatIDs(-1001232571812, -1001630828458),
+  AnyText,
   Finder,
   SZLCSC,
   XCC,
-  Intel
+  Intel,
 )

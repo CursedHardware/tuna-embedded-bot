@@ -1,10 +1,10 @@
 import fetch from 'node-fetch'
 import urlcat from 'urlcat'
-import { IntelError } from '../types'
+import { IntelError } from './types'
 
 const API_URL = 'https://ark.intel.com/libs/apps/intel'
 
-export async function search(input_query: string) {
+export async function findARK(input_query: string) {
   const link = urlcat(API_URL, '/arksearch/apigeeautocomplete.json', {
     _charset_: 'UTF-8',
     input_query,

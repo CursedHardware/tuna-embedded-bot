@@ -1,8 +1,9 @@
 import fetch from 'node-fetch'
-import { NoResultError, SZLCSCError } from '../types'
-import { toReadableNumber } from '../utils'
-import { search } from './handler'
-import type { Payload, ProductChina, ProductIntl } from './types'
+import urlcat from 'urlcat'
+import { NoResultError } from '../types'
+import { toReadableNumber } from '../utils/number'
+import { find } from './handler'
+import { Payload, ProductChina, ProductIntl, SZLCSCError } from './types'
 
 export function getPackage(p: ProductIntl) {
   return `${toReadableNumber(p.minPacketNumber)} ${p.productUnit}/${p.minPacketUnit}`
@@ -20,10 +21,17 @@ export async function getProductCodeFromId(id: number) {
 }
 
 export async function getProductIdFromCode(code: string) {
-  const products = await search(code)
+  const products = await find(code)
   const matched = products.find((p) => p.code === code)
   if (!matched) throw new NoResultError()
   return matched.id
+}
+
+export async function getProductFromIntl(product_code: string): Promise<ProductIntl> {
+  const response = await fetch(urlcat('https://wwwapi.lcsc.com/v1/products/detail', { product_code }))
+  const payload = await response.json()
+  if (Array.isArray(payload)) throw new NoResultError()
+  return payload
 }
 
 export async function getProductFromChina(id: number): Promise<ProductChina> {
@@ -41,7 +49,7 @@ export async function getProductCodeFromURL(input: string) {
   } else if (url.host === 'm.szlcsc.com') {
     const id = url.searchParams.get('productId')
     if (id) return getProductCodeFromId(+id)
-  } else if (url.host === 'www.lcsc.com') {
+  } else if (url.host.endsWith('lcsc.com')) {
     const match = /(?<code>C\d+)\.html$/.exec(url.pathname)
     if (match?.groups?.code) return match.groups.code
   }

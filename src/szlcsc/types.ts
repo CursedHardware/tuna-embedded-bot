@@ -13,18 +13,19 @@ export interface ProductIntl {
   productUnit: string
   minPacketUnit: string
   minPacketNumber: number
+  split: number
   stockNumber: number
   stockSz: number
   stockJs: number
   productPriceList: ProductPrice[]
   productImages: string[]
   pdfUrl: string
-  paramVOList: ParameterItem[] | null
 }
 
 export interface ProductChina {
   code: string
-  priceList: Array<{ price: number; startNumber: number }>
+  priceList: Array<{ price: number; startNumber: number; endNumber: number }>
+  splitRatio: number
   param: Record<string, string> | null
 }
 
@@ -40,7 +41,10 @@ export interface ProductPrice {
   currencySymbol: String
 }
 
-export interface ParameterItem {
-  paramNameEn: string
-  paramValueEn: string
+export class SZLCSCError extends Error {
+  name = 'SZLCSCError'
+
+  constructor(message: string) {
+    super(message)
+  }
 }

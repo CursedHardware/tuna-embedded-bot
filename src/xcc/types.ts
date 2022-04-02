@@ -3,3 +3,17 @@ export interface Payload<T> {
   msg: string
   data: T
 }
+
+export interface WareDetailRow {
+  brandName: string
+  pdfUrl: string
+  title: string
+}
+
+export class XCCError extends Error {
+  name = 'XCCError'
+
+  constructor(message: string) {
+    super(message)
+  }
+}
