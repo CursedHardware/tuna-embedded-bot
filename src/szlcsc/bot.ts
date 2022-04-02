@@ -1,6 +1,6 @@
 import { Composer } from 'telegraf'
 import type { Message } from 'telegraf/typings/core/types/typegram'
-import { getEntities, group } from '../utils'
+import { getEntities, group } from '../utils/telegraf'
 import { handle } from './handler'
 import { getProductCodeFromURL } from './utils'
 

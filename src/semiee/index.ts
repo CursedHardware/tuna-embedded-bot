@@ -1,17 +1,14 @@
 import fetch, { RequestInit } from 'node-fetch'
 import { Context } from 'telegraf'
 import urlcat, { ParamMap } from 'urlcat'
-import { NoResultError } from '../types'
-import { reply } from '../utils'
+import { reply } from '../utils/reply'
 import { Payload, Product, SearchedResult, SemieeError } from './types'
 
 const HOST = 'https://www.semiee.com'
 const HOST_API = urlcat(HOST, '/bdxx-api/chip')
 
 export async function find(model: string, pageIndex = 0, pageSize = 10) {
-  const results = await get<SearchedResult[]>('/search', { model, pageIndex, pageSize })
-  if (results.length === 0) throw new NoResultError()
-  return results
+  return get<SearchedResult[]>('/search', { model, pageIndex, pageSize })
 }
 
 export async function handle(ctx: Context, id: string) {

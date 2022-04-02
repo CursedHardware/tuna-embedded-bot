@@ -1,6 +1,6 @@
 import fetch from 'node-fetch'
 import { NoResultError } from '../types'
-import { toReadableNumber } from '../utils'
+import { toReadableNumber } from '../utils/number'
 import { find } from './handler'
 import { Payload, ProductChina, ProductIntl, SZLCSCError } from './types'
 

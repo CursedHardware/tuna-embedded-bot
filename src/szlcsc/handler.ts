@@ -3,7 +3,8 @@ import type { Context } from 'telegraf'
 import type { InputFile } from 'telegraf/typings/core/types/typegram'
 import urlcat from 'urlcat'
 import { NoResultError } from '../types'
-import { formatPrice, reply, toReadableNumber } from '../utils'
+import { formatPrice, toReadableNumber } from '../utils/number'
+import { reply } from '../utils/reply'
 import { Payload, ProductIntl, SearchedProduct, SZLCSCError } from './types'
 import { getInStock, getPackage, getProductFromChina } from './utils'
 
@@ -20,7 +21,7 @@ export async function handle(ctx: Context, productCode: string) {
       yield `Brand: <code>${product.brandNameEn}</code>`
       yield `Model: <code>${product.productModel}</code>`
       yield `Package: <code>${product.encapStandard}</code> (${getPackage(product)})`
-      if (product.stockNumber) {
+      if (product.stockJs && product.stockSz) {
         yield `Stock: ${getInStock(product, product.stockNumber)}`
       }
       if (product.stockJs) {
@@ -50,7 +51,6 @@ export async function find(keyword: string) {
   const response = await fetch(urlcat('https://so.szlcsc.com/phone/p/product/search', { keyword }))
   const payload: Payload<{ productList: SearchedProduct[] }> = await response.json()
   if (payload.code !== 200) throw new SZLCSCError(payload.msg)
-  if (payload.result.productList.length === 0) throw new NoResultError()
   return payload.result.productList
 }
 

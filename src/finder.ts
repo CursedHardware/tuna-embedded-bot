@@ -1,8 +1,8 @@
-import { Composer, Context } from 'telegraf'
+import { Composer } from 'telegraf'
 import * as FlashInfo from './flashinfo'
 import * as SEMIEE from './semiee'
 import * as SZLCSC from './szlcsc'
-import { getQuery, group, isBotCommand } from './utils'
+import { getQuery, group, isBotCommand } from './utils/telegraf'
 
 export const AnyText = Composer.on('text', async (ctx, next) => {
   if (ctx.chat.type !== 'private') return next()
@@ -14,27 +14,25 @@ export const AnyText = Composer.on('text', async (ctx, next) => {
   )
 })
 
-export const Finder = Composer.command('/find', async (ctx) => {
-  const keyword = getQuery(ctx.message)
-  await findSZLCSC(ctx, keyword)
-    .catch(() => findSEMIEE(ctx, keyword))
-    .catch(() => findFlashIC(ctx, keyword))
-})
-
-async function findSZLCSC(ctx: Context, keyword: string) {
-  const products = await SZLCSC.find(keyword)
+const findSZLCSC = Composer.on('text', async (ctx, next) => {
+  const products = await SZLCSC.find(getQuery(ctx.message))
+  if (products.length === 0) return next()
   const { code } = products[0]
   return group(ctx, `Reading <code>${code}</code> from szlcsc.com`, () => SZLCSC.handle(ctx, code))
-}
+})
 
-async function findSEMIEE(ctx: Context, keyword: string) {
-  const products = await SEMIEE.find(keyword)
+const findSEMIEE = Composer.on('text', async (ctx, next) => {
+  const products = await SEMIEE.find(getQuery(ctx.message))
+  if (products.length === 0) return next()
   const { id, model } = products[0]
   return group(ctx, `Reading <code>${model}</code> from semiee.com`, () => SEMIEE.handle(ctx, id))
-}
+})
 
-async function findFlashIC(ctx: Context, keyword: string) {
-  const products = await FlashInfo.find(keyword)
+const findFlashIC = Composer.on('text', async (ctx, next) => {
+  const products = await FlashInfo.find(getQuery(ctx.message))
+  if (products.length === 0) return next()
   const model = products[0]
   return group(ctx, `Reading <code>${model}</code> from flashinfo.top`, () => FlashInfo.handle(ctx, model))
-}
+})
+
+export const Finder = Composer.command('/find', findSZLCSC, findSEMIEE, findFlashIC)

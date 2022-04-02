@@ -1,5 +1,5 @@
 import { Composer } from 'telegraf'
-import { getQuery } from '../utils'
+import { getQuery } from '../utils/telegraf'
 import { findARK } from './handler'
 
 export const bot = Composer.command('/ark', async (ctx) => {

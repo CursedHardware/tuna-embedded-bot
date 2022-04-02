@@ -1,8 +1,7 @@
 import fetch from 'node-fetch'
 import { Context } from 'telegraf'
 import urlcat, { ParamMap } from 'urlcat'
-import { NoResultError } from '../types'
-import { reply } from '../utils'
+import { reply } from '../utils/reply'
 import { ChipDetails as FlashDatasheet, FlashInfoError, Payload } from './types'
 
 const HOST = 'https://flashinfo.top'
@@ -11,8 +10,7 @@ export async function find(keyword: string) {
   const response = await fetch(urlcat(HOST, '/SearchServlet', { keyword }))
   if (!response.ok) throw new FlashInfoError(response.statusText)
   const rows: string[] = await response.json()
-  if (rows?.length === 0) throw new NoResultError()
-  return rows
+  return rows ?? []
 }
 
 export async function handle(ctx: Context, partNumber: string) {

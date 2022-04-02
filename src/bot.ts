@@ -2,7 +2,7 @@ import { Composer, Telegraf } from 'telegraf'
 import { AnyText, Finder } from './finder'
 import { bot as Intel } from './intel'
 import { bot as SZLCSC } from './szlcsc'
-import { ErrorHandler, limitGroupChatIDs } from './utils'
+import { ErrorHandler, limitGroupChatIDs } from './utils/telegraf'
 import { bot as XCC } from './xcc'
 
 export const bot = new Telegraf(process.env.BOT_TOKEN ?? '', {
