@@ -1,2 +1,2 @@
-export { handle, search } from './handler'
-export { bot } from './bot'
+export { bot, getProducts } from './bot'
+export { find, handle } from './handler'

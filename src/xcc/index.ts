@@ -19,7 +19,7 @@ bot.command('/smd', async (ctx) => {
   })
   if (rows.length === 0) throw new NoResultError()
   const lines = rows.map((r) => `<pre>${r.smd}: ${r.title}</pre>`)
-  await ctx.reply([...new Set(lines)].join('\n'), {
+  await ctx.reply(Array.from(new Set(lines)).join('\n'), {
     parse_mode: 'HTML',
     reply_to_message_id: ctx.message.message_id,
   })
@@ -39,7 +39,7 @@ bot.command('/pin2pin', async (ctx) => {
   if (rows.length === 0) throw new NoResultError()
   rows.sort((a, b) => a.pinTitle.localeCompare(b.pinTitle, 'en-US', { numeric: true }))
   const lines = rows.map((d) => `<pre>${d.pinTitle.replace(/ /g, '-')}</pre>`)
-  await ctx.reply([...new Set(lines)].join('\n'), {
+  await ctx.reply(Array.from(new Set(lines)).join('\n'), {
     parse_mode: 'HTML',
     reply_to_message_id: ctx.message.message_id,
   })
