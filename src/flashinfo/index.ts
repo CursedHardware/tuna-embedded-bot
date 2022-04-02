@@ -11,7 +11,7 @@ export async function find(keyword: string) {
   const response = await fetch(urlcat(HOST, '/SearchServlet', { keyword }))
   if (!response.ok) throw new FlashInfoError(response.statusText)
   const rows: string[] = await response.json()
-  if (rows.length === 0) throw new NoResultError()
+  if (rows?.length === 0) throw new NoResultError()
   return rows
 }
 

@@ -3,7 +3,7 @@ import type { Context } from 'telegraf'
 import type { InputFile } from 'telegraf/typings/core/types/typegram'
 import urlcat from 'urlcat'
 import { NoResultError } from '../types'
-import { reply, toReadableNumber } from '../utils'
+import { formatPrice, reply, toReadableNumber } from '../utils'
 import { Payload, ProductIntl, SearchedProduct, SZLCSCError } from './types'
 import { getInStock, getPackage, getProductFromChina } from './utils'
 
@@ -20,14 +20,20 @@ export async function handle(ctx: Context, productCode: string) {
       yield `Brand: <code>${product.brandNameEn}</code>`
       yield `Model: <code>${product.productModel}</code>`
       yield `Package: <code>${product.encapStandard}</code> (${getPackage(product)})`
-      yield `Stock: ${getInStock(product, product.stockNumber)}`
-      yield `Stock (Jiangsu): ${getInStock(product, product.stockJs)}`
-      yield `Stock (Shenzhen): ${getInStock(product, product.stockSz)}`
+      if (product.stockNumber) {
+        yield `Stock: ${getInStock(product, product.stockNumber)}`
+      }
+      if (product.stockJs) {
+        yield `Stock (Jiangsu): ${getInStock(product, product.stockJs)}`
+      }
+      if (product.stockSz) {
+        yield `Stock (Shenzhen): ${getInStock(product, product.stockSz)}`
+      }
       yield `Price List (CNY): ${makeSimpleList(productChina.priceList)
-        .map((_) => `${toReadableNumber(_.startNumber)}+: ${_.price}`)
+        .map((_) => `${toReadableNumber(_.startNumber)}+: ${formatPrice(_.price)}`)
         .join(', ')}`
       yield `Price List (USD): ${makeSimpleList(product.productPriceList)
-        .map((_) => `${toReadableNumber(_.ladder)}+: ${_.usdPrice}`)
+        .map((_) => `${toReadableNumber(_.ladder)}+: ${formatPrice(_.usdPrice)}`)
         .join(', ')}`
     },
     photos() {

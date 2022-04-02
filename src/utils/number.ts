@@ -12,7 +12,7 @@ export function toReadableNumber(input: number, base = 1000) {
 }
 
 export function formatPrice(input: number) {
-  if (input < 3) return input.toFixed(6)
+  if (input < 100) return input
   if (input < 1000) return input.toFixed(2)
-  return `${(input / 1000).toFixed(1)}k`
+  return toReadableNumber(input)
 }
