@@ -29,8 +29,6 @@ export async function reply(ctx: Context<Update>, options: ReplyOptions) {
     const pdfSource = await (await fetch(dsURL)).buffer()
     if (pdfSource) {
       try {
-        photos.unshift({ source: await getPDFPage(pdfSource, 2) })
-        photos.unshift({ source: await getPDFPage(pdfSource, 1) })
         photos.unshift({ source: await getPDFPage(pdfSource, 0) })
       } catch (error) {
         console.error('pdf-page', { error })
