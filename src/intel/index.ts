@@ -1,9 +1,9 @@
 import { Composer } from 'telegraf'
-import { getKeyword } from '../utils'
+import { getQuery } from '../utils'
 import { findARK } from './handler'
 
 export const bot = Composer.command('/ark', async (ctx) => {
-  const query = getKeyword(ctx.message)
+  const query = getQuery(ctx.message)
   const results = await findARK(query)
   results.sort((a, b) => a.label.localeCompare(b.label, 'en-US', { numeric: true }))
   const links = results.map(({ prodUrl, label }) => {

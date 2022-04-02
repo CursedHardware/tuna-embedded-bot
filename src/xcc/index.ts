@@ -2,7 +2,7 @@ import fetch from 'node-fetch'
 import { Composer } from 'telegraf'
 import urlcat, { ParamMap } from 'urlcat'
 import { NoResultError, XCCError } from '../types'
-import { getKeyword } from '../utils'
+import { getQuery } from '../utils'
 import type { Payload } from './types'
 
 export const bot = new Composer()
@@ -13,7 +13,7 @@ bot.command('/smd', async (ctx) => {
     title: string
   }
   const { rows } = await get<{ rows: Row[] }>('/search/wareSmd', {
-    searchContent: getKeyword(ctx.message),
+    searchContent: getQuery(ctx.message),
     pageIndex: 1,
     pageSize: 50,
   })
@@ -31,7 +31,7 @@ bot.command('/pin2pin', async (ctx) => {
     pinTitle: string
   }
   const { pageResult } = await get<{ pageResult: { rows: Row[] } }>('/search/ware-pin', {
-    searchContent: getKeyword(ctx.message),
+    searchContent: getQuery(ctx.message),
     pageIndex: 1,
     pageSize: 50,
   })

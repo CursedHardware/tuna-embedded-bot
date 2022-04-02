@@ -7,7 +7,7 @@ export function isBotCommand({ entities }: Message.TextMessage) {
   return entity?.type === 'bot_command' && entity.offset === 0
 }
 
-export function getKeyword({ text, entities }: Message.TextMessage) {
+export function getQuery({ text, entities }: Message.TextMessage) {
   const entity = entities?.[0]
   if (entity?.type !== 'bot_command') throw new SyntaxError()
   const keyword = text.slice(entity.offset + entity.length).trim()

@@ -1,6 +1,6 @@
 import fetch from 'node-fetch'
 import type { Context } from 'telegraf'
-import type { InputMediaPhoto } from 'telegraf/typings/core/types/typegram'
+import type { InputFile } from 'telegraf/typings/core/types/typegram'
 import urlcat from 'urlcat'
 import { NoResultError, SZLCSCError } from '../types'
 import { reply, toReadableNumber } from '../utils'
@@ -32,7 +32,7 @@ export async function handle(ctx: Context, productCode: string) {
         .join(', ')}`
     },
     photos() {
-      return (product.productImages ?? []).map((media): InputMediaPhoto => ({ type: 'photo', media }))
+      return (product.productImages ?? []).map((url): InputFile => ({ url }))
     },
     *markup() {
       yield { text: product.productCode, url: `https://lcsc.com/product-detail/${product.productCode}.html` }

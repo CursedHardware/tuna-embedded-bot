@@ -1,7 +1,7 @@
 import { Composer, Context } from 'telegraf'
 import * as SEMIEE from './semiee'
 import * as SZLCSC from './szlcsc'
-import { getKeyword, group, isBotCommand } from './utils'
+import { getQuery, group, isBotCommand } from './utils'
 
 export const AnyText = Composer.on('text', async (ctx, next) => {
   if (ctx.chat.type !== 'private') return next()
@@ -14,7 +14,7 @@ export const AnyText = Composer.on('text', async (ctx, next) => {
 })
 
 export const Finder = Composer.command('/find', async (ctx) => {
-  const keyword = getKeyword(ctx.message)
+  const keyword = getQuery(ctx.message)
   await findSZLCSC(ctx, keyword).catch(() => findSEMIEE(ctx, keyword))
 })
 

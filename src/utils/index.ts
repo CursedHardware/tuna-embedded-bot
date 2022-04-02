@@ -1,6 +1,6 @@
 export { download, getDatasheetURL } from './datasheet'
 export { formatPrice, toReadableNumber } from './number'
-export { getPDFPage as getPDFCover, isPDF } from './pdf'
+export { isPDF } from './pdf'
 export { exec } from './process'
 export { reply } from './reply'
-export { ErrorHandler, getEntities, getKeyword, group, isBotCommand, limitGroupChatIDs } from './telegraf'
+export { ErrorHandler, getEntities, getQuery, group, isBotCommand, limitGroupChatIDs } from './telegraf'
