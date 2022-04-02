@@ -1,9 +1,9 @@
 import fetch from 'node-fetch'
 import { Composer } from 'telegraf'
 import urlcat, { ParamMap } from 'urlcat'
-import { NoResultError, XCCError } from '../types'
+import { NoResultError } from '../types'
 import { getQuery } from '../utils'
-import type { Payload } from './types'
+import { Payload, XCCError } from './types'
 
 export const bot = new Composer()
 

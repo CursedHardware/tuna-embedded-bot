@@ -3,3 +3,11 @@ export interface Payload<T> {
   msg: string
   data: T
 }
+
+export class XCCError extends Error {
+  name = 'XCCError'
+
+  constructor(message: string) {
+    super(message)
+  }
+}

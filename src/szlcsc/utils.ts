@@ -1,8 +1,8 @@
 import fetch from 'node-fetch'
-import { NoResultError, SZLCSCError } from '../types'
+import { NoResultError } from '../types'
 import { toReadableNumber } from '../utils'
 import { find } from './handler'
-import type { Payload, ProductChina, ProductIntl } from './types'
+import { Payload, ProductChina, ProductIntl, SZLCSCError } from './types'
 
 export function getPackage(p: ProductIntl) {
   return `${toReadableNumber(p.minPacketNumber)} ${p.productUnit}/${p.minPacketUnit}`

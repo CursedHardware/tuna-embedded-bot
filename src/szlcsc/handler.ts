@@ -2,9 +2,9 @@ import fetch from 'node-fetch'
 import type { Context } from 'telegraf'
 import type { InputFile } from 'telegraf/typings/core/types/typegram'
 import urlcat from 'urlcat'
-import { NoResultError, SZLCSCError } from '../types'
+import { NoResultError } from '../types'
 import { reply, toReadableNumber } from '../utils'
-import type { Payload, ProductIntl, SearchedProduct } from './types'
+import { Payload, ProductIntl, SearchedProduct, SZLCSCError } from './types'
 import { getInStock, getPackage, getProductFromChina } from './utils'
 
 export async function handle(ctx: Context, productCode: string) {
@@ -14,8 +14,7 @@ export async function handle(ctx: Context, productCode: string) {
   return reply(ctx, {
     brand: product.brandNameEn,
     model: product.productModel,
-    dsURL: product.pdfUrl,
-    fileName: `${product.productCode}_${product.productModel}.pdf`,
+    datasheet: { url: product.pdfUrl, fileName: `${product.productCode}_${product.productModel}.pdf` },
     *html() {
       yield `Part#: <code>${product.productCode}</code>`
       yield `Brand: <code>${product.brandNameEn}</code>`

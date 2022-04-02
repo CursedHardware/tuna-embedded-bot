@@ -16,3 +16,11 @@ export interface Product {
   dsFile: { name: string; path: string } | null
   params: Array<{ name: string; value: string }>
 }
+
+export class SemieeError extends Error {
+  name = 'SemieeError'
+
+  constructor(message: string) {
+    super(message)
+  }
+}

@@ -1,6 +1,6 @@
 import fetch from 'node-fetch'
 import urlcat from 'urlcat'
-import { IntelError } from '../types'
+import { IntelError } from './types'
 
 const API_URL = 'https://ark.intel.com/libs/apps/intel'
 

@@ -44,3 +44,11 @@ export interface ParameterItem {
   paramNameEn: string
   paramValueEn: string
 }
+
+export class SZLCSCError extends Error {
+  name = 'SZLCSCError'
+
+  constructor(message: string) {
+    super(message)
+  }
+}

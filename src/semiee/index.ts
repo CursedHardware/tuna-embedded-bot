@@ -1,9 +1,9 @@
 import fetch, { RequestInit } from 'node-fetch'
 import { Context } from 'telegraf'
 import urlcat, { ParamMap } from 'urlcat'
-import { NoResultError, SemieeError } from '../types'
+import { NoResultError } from '../types'
 import { reply } from '../utils'
-import type { Payload, Product, SearchedResult } from './types'
+import { Payload, Product, SearchedResult, SemieeError } from './types'
 
 const HOST = 'https://www.semiee.com'
 const HOST_API = urlcat(HOST, '/bdxx-api/chip')
@@ -20,8 +20,10 @@ export async function handle(ctx: Context, id: string) {
   return reply(ctx, {
     brand: brandName,
     model: product.model,
-    dsURL: product.dsFile?.path,
-    fileName: product.dsFile?.name ?? `${brandName}_${product.model}.pdf`,
+    datasheet: {
+      url: product.dsFile?.path,
+      fileName: product.dsFile?.name ?? `${brandName}_${product.model}.pdf`,
+    },
     *html() {
       yield `${brandName} ${product.model}`
     },

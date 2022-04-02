@@ -1,4 +1,5 @@
 import { Composer, Context } from 'telegraf'
+import * as FlashInfo from './flashinfo'
 import * as SEMIEE from './semiee'
 import * as SZLCSC from './szlcsc'
 import { getQuery, group, isBotCommand } from './utils'
@@ -15,7 +16,9 @@ export const AnyText = Composer.on('text', async (ctx, next) => {
 
 export const Finder = Composer.command('/find', async (ctx) => {
   const keyword = getQuery(ctx.message)
-  await findSZLCSC(ctx, keyword).catch(() => findSEMIEE(ctx, keyword))
+  await findSZLCSC(ctx, keyword)
+    .catch(() => findSEMIEE(ctx, keyword))
+    .catch(() => findFlashIC(ctx, keyword))
 })
 
 async function findSZLCSC(ctx: Context, keyword: string) {
@@ -28,4 +31,10 @@ async function findSEMIEE(ctx: Context, keyword: string) {
   const products = await SEMIEE.find(keyword)
   const { id, model } = products[0]
   return group(ctx, `Reading <code>${model}</code> from semiee.com`, () => SEMIEE.handle(ctx, id))
+}
+
+async function findFlashIC(ctx: Context, keyword: string) {
+  const products = await FlashInfo.find(keyword)
+  const model = products[0]
+  return group(ctx, `Reading <code>${model}</code> from flashinfo.top`, () => FlashInfo.handle(ctx, model))
 }

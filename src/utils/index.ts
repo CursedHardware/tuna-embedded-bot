@@ -1,4 +1,4 @@
-export { download, getDatasheetURL } from './datasheet'
+export { download } from './datasheet'
 export { formatPrice, toReadableNumber } from './number'
 export { isPDF } from './pdf'
 export { exec } from './process'
