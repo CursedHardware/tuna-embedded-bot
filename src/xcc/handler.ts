@@ -18,7 +18,10 @@ export async function handle(ctx: Context, row: WareDetailRow) {
   return reply(ctx, {
     brand,
     model: row.title,
-    datasheet: { url: row.pdfUrl, fileName: `${row.title}.pdf` },
+    datasheet() {
+      const name = `${brand}_${row.title}.pdf`
+      return { url: row.pdfUrl, name }
+    },
     *html() {
       yield brand
       yield row.title

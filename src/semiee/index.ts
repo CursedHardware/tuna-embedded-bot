@@ -17,9 +17,9 @@ export async function handle(ctx: Context, id: string) {
   return reply(ctx, {
     brand: brandName,
     model: product.model,
-    datasheet: {
-      url: product.dsFile?.path,
-      fileName: product.dsFile?.name ?? `${brandName}_${product.model}.pdf`,
+    datasheet() {
+      const { name, path } = product.dsFile ?? {}
+      return { url: path, name: name ?? `${brandName}_${product.model}.pdf` }
     },
     *html() {
       yield `${brandName} ${product.model}`

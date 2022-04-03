@@ -1,4 +1,5 @@
 import fetch from 'node-fetch'
+import urlcat from 'urlcat'
 import { NoResultError } from '../types'
 import { toReadableNumber } from '../utils/number'
 import { find } from './handler'
@@ -24,6 +25,13 @@ export async function getProductIdFromCode(code: string) {
   const matched = products.find((p) => p.code === code)
   if (!matched) throw new NoResultError()
   return matched.id
+}
+
+export async function getProductFromIntl(product_code: string): Promise<ProductIntl> {
+  const response = await fetch(urlcat('https://wwwapi.lcsc.com/v1/products/detail', { product_code }))
+  const payload = await response.json()
+  if (Array.isArray(payload)) throw new NoResultError()
+  return payload
 }
 
 export async function getProductFromChina(id: number): Promise<ProductChina> {

@@ -3,11 +3,10 @@ import fetch from 'node-fetch'
 import type { Context } from 'telegraf'
 import type { InputFile } from 'telegraf/typings/core/types/typegram'
 import urlcat from 'urlcat'
-import { NoResultError } from '../types'
 import { formatPrice, toReadableNumber } from '../utils/number'
 import { PriceItem, reply } from '../utils/reply'
-import { Payload, ProductIntl, SearchedProduct, SZLCSCError } from './types'
-import { getInStock, getPackage, getProductFromChina } from './utils'
+import { Payload, SearchedProduct, SZLCSCError } from './types'
+import { getInStock, getPackage, getProductFromChina, getProductFromIntl } from './utils'
 
 export async function handle(ctx: Context, productCode: string) {
   productCode = productCode.toUpperCase()
@@ -16,7 +15,10 @@ export async function handle(ctx: Context, productCode: string) {
   return reply(ctx, {
     brand: product.brandNameEn,
     model: product.productModel,
-    datasheet: { url: product.pdfUrl, fileName: `${product.productCode}_${product.productModel}.pdf` },
+    datasheet() {
+      const name = `${product.productCode}_${product.productModel}.pdf`
+      return { url: product.pdfUrl, name }
+    },
     *html(prices) {
       yield `Part#: <code>${product.productCode}</code>`
       yield `Brand: <code>${product.brandNameEn}</code>`
@@ -63,13 +65,6 @@ export async function find(keyword: string) {
   const payload: Payload<{ productList: SearchedProduct[] }> = await response.json()
   if (payload.code !== 200) throw new SZLCSCError(payload.msg)
   return payload.result.productList ?? []
-}
-
-async function getProductFromIntl(product_code: string): Promise<ProductIntl> {
-  const response = await fetch(urlcat('https://wwwapi.lcsc.com/v1/products/detail', { product_code }))
-  const payload = await response.json()
-  if (Array.isArray(payload)) throw new NoResultError()
-  return payload
 }
 
 function makeStartPrice(items: PriceItem[], symbol: string) {
