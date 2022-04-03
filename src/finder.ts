@@ -16,7 +16,7 @@ export const AnyText = Composer.on('text', async (ctx, next) => {
 })
 
 export const Finder = Composer.command(
-  '/find',
+  ['/find', '/first', '/search'],
   async (ctx, next) => {
     const products = await SZLCSC.find(getQuery(ctx.message))
     if (products.length === 0) return next()

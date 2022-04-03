@@ -7,7 +7,7 @@ import { Payload, XCCError } from './types'
 
 export const bot = new Composer()
 
-bot.command('/smd', async (ctx) => {
+bot.command('/mark', async (ctx) => {
   interface Row {
     smd: string
     title: string
