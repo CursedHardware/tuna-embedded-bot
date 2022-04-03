@@ -14,25 +14,25 @@ export const AnyText = Composer.on('text', async (ctx, next) => {
   )
 })
 
-const findSZLCSC = Composer.on('text', async (ctx, next) => {
-  const products = await SZLCSC.find(getQuery(ctx.message))
-  if (products.length === 0) return next()
-  const { code } = products[0]
-  return group(ctx, `Reading <code>${code}</code> from szlcsc.com`, () => SZLCSC.handle(ctx, code))
-})
-
-const findSEMIEE = Composer.on('text', async (ctx, next) => {
-  const products = await SEMIEE.find(getQuery(ctx.message))
-  if (products.length === 0) return next()
-  const { id, model } = products[0]
-  return group(ctx, `Reading <code>${model}</code> from semiee.com`, () => SEMIEE.handle(ctx, id))
-})
-
-const findFlashIC = Composer.on('text', async (ctx, next) => {
-  const products = await FlashInfo.find(getQuery(ctx.message))
-  if (products.length === 0) return next()
-  const model = products[0]
-  return group(ctx, `Reading <code>${model}</code> from flashinfo.top`, () => FlashInfo.handle(ctx, model))
-})
-
-export const Finder = Composer.command('/find', findSZLCSC, findSEMIEE, findFlashIC)
+export const Finder = Composer.command(
+  '/find',
+  async (ctx, next) => {
+    const products = await SZLCSC.find(getQuery(ctx.message))
+    if (products.length === 0) return next()
+    const { code } = products[0]
+    return group(ctx, `Reading <code>${code}</code> from szlcsc.com`, () => SZLCSC.handle(ctx, code))
+  },
+  async (ctx, next) => {
+    const products = await SEMIEE.find(getQuery(ctx.message))
+    if (products.length === 0) return next()
+    const { id, model } = products[0]
+    return group(ctx, `Reading <code>${model}</code> from semiee.com`, () => SEMIEE.handle(ctx, id))
+  },
+  async (ctx, next) => {
+    const products = await FlashInfo.find(getQuery(ctx.message))
+    if (products.length === 0) return next()
+    const model = products[0]
+    return group(ctx, `Reading <code>${model}</code> from flashinfo.top`, () => FlashInfo.handle(ctx, model))
+  },
+  (ctx) => ctx.reply('No Result', { reply_to_message_id: ctx.message.message_id }),
+)

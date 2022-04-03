@@ -25,7 +25,7 @@ export interface ProductIntl {
 
 export interface ProductChina {
   code: string
-  priceList: Array<{ price: number; startNumber: number }>
+  priceList: Array<{ price: number; startNumber: number; endNumber: number }>
   splitRatio: number
   param: Record<string, string> | null
 }

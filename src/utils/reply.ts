@@ -8,19 +8,27 @@ interface ReplyOptions {
   brand: string
   model: string
   datasheet?: DatasheetOptions
-  html(): Generator<string>
+  html(prices: PriceItem[]): Generator<string>
+  prices?(): Generator<PriceItem>
   photos?(): Generator<InputFile> | InputFile[]
   markup?(): Generator<InlineKeyboardButton>
 }
 
-interface DatasheetOptions {
+export interface PriceItem {
+  start: number
+  price: number
+  symbol: string
+}
+
+export interface DatasheetOptions {
   url?: string
   fileName?: string
   query?(brand: string, model: string): string[]
 }
 
 export async function reply(ctx: Context<Update>, options: ReplyOptions) {
-  const caption = Array.from(options.html()).join('\n')
+  const prices = Array.from(options.prices?.() ?? [])
+  const caption = Array.from(options.html(prices)).join('\n')
   const buttons = Array.from(options.markup?.() ?? [])
   const photos: InputFile[] = Array.from(options.photos?.() ?? [])
   const dsURL = await getDatasheetURL(options.datasheet, options.brand, options.model)
