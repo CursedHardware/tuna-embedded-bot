@@ -7,7 +7,7 @@ import { Payload, Product, SearchedResult, SemieeError } from './types'
 const HOST = 'https://www.semiee.com'
 const HOST_API = urlcat(HOST, '/bdxx-api/chip')
 
-export async function find(model: string, pageIndex = 0, pageSize = 10) {
+export async function find(model: string, pageIndex = 0, pageSize = 1) {
   return get<SearchedResult[]>('/search', { model, pageIndex, pageSize })
 }
 
