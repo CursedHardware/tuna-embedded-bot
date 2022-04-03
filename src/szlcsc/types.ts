@@ -24,6 +24,9 @@ export interface ProductIntl {
 
 export interface ProductChina {
   code: string
+  priceDiscount: {
+    priceList: Array<{ discount: number; spNumber: number; price: number }>
+  }
   priceList: Array<{ price: number; startNumber: number; endNumber: number }>
   splitRatio: number
   param: Record<string, string> | null
@@ -37,8 +40,7 @@ export interface SearchedProduct {
 export interface ProductPrice {
   ladder: number
   usdPrice: number
-  currencyPrice: number
-  currencySymbol: String
+  discountRate: string
 }
 
 export class SZLCSCError extends Error {

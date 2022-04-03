@@ -18,8 +18,8 @@ export function toReadableNumber(input: Decimal.Value, base = 1000) {
   return formatted + units[n]
 }
 
-export function formatPrice(input: Decimal.Value) {
+export function formatPrice(input: Decimal.Value, unit: string) {
   input = new Decimal(input)
-  if (input.lt(ONE)) return `x${ONE.div(input).ceil()}`
+  if (input.lt(ONE)) return `${ONE.div(input).ceil()} ${unit}/1`
   return toReadableNumber(input)
 }

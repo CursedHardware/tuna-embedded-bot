@@ -1,3 +1,4 @@
+import Decimal from 'decimal.js'
 import fetch from 'node-fetch'
 import urlcat from 'urlcat'
 import { NoResultError } from '../types'
@@ -9,9 +10,10 @@ export function getPackage(p: ProductIntl) {
   return `${toReadableNumber(p.minPacketNumber)} ${p.productUnit}/${p.minPacketUnit}`
 }
 
-export function getInStock(p: ProductIntl, stock: number) {
-  if (stock === 0) return 'Out of Stock'
-  const packet = `${toReadableNumber(stock / p.minPacketNumber)} ${p.minPacketUnit}`
+export function getInStock(p: ProductIntl, stock: Decimal.Value) {
+  stock = new Decimal(stock)
+  if (stock.isZero()) return 'Out of Stock'
+  const packet = `${toReadableNumber(stock.div(p.minPacketNumber))} ${p.minPacketUnit}`
   return `${toReadableNumber(stock)} ${p.productUnit} (${packet})`
 }
 

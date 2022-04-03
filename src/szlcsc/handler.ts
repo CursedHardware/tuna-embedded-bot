@@ -33,21 +33,31 @@ export async function handle(ctx: Context, productCode: string) {
       if (product.stockSz) {
         yield `Stock (Shenzhen): ${getInStock(product, product.stockSz)}`
       }
-      yield `Price List (CNY): ${makePriceList(prices, 'CNY')}`
+      yield `Price List (CNY): ${makePriceList(prices, 'CNY', product.productUnit)}`
       if (productChina.splitRatio > 1) {
-        yield `Start Price (CNY): ${makeStartPrice(prices, 'CNY')}`
+        yield `Start Price (CNY): ${makeStartPrice(prices, 'CNY', product.productUnit)}`
       }
-      yield `Price List (USD): ${makePriceList(prices, 'USD')}`
+      yield `Price List (USD): ${makePriceList(prices, 'USD', product.productUnit)}`
       if (product.split > 1) {
-        yield `Start Price (USD): ${makeStartPrice(prices, 'USD')}`
+        yield `Start Price (USD): ${makeStartPrice(prices, 'USD', product.productUnit)}`
       }
     },
     *prices() {
-      for (const _ of productChina.priceList) {
-        yield { symbol: 'CNY', start: _.startNumber * productChina.splitRatio, price: _.price }
+      if (productChina.priceDiscount) {
+        for (let { spNumber: start, price, discount } of productChina.priceDiscount.priceList) {
+          price = new Decimal(price).mul(discount).toNumber()
+          start = new Decimal(start).mul(productChina.splitRatio).toNumber()
+          yield { symbol: 'CNY', start, price }
+        }
+      } else {
+        for (let { startNumber: start, price } of productChina.priceList) {
+          start = new Decimal(start).mul(productChina.splitRatio).toNumber()
+          yield { symbol: 'CNY', start, price }
+        }
       }
-      for (const _ of product.productPriceList) {
-        yield { symbol: 'USD', start: _.ladder, price: _.usdPrice }
+      for (const { ladder, usdPrice, discountRate } of product.productPriceList) {
+        const price = new Decimal(usdPrice).mul(discountRate ?? '1').toNumber()
+        yield { symbol: 'USD', start: ladder, price }
       }
     },
     photos() {
@@ -67,16 +77,16 @@ export async function find(keyword: string) {
   return payload.result.productList ?? []
 }
 
-function makeStartPrice(items: PriceItem[], symbol: string) {
+function makeStartPrice(items: PriceItem[], symbol: string, unit: string) {
   items = items.filter((item) => item.symbol === symbol)
   const { price, start } = items[0]
   const minimumPrice = new Decimal(price).mul(start).toFixed(2)
-  return `${toReadableNumber(start)} PCS @ ${minimumPrice} ${symbol}`
+  return `${toReadableNumber(start)} ${unit}/${minimumPrice}`
 }
 
-function makePriceList(items: PriceItem[], symbol: string): string {
+function makePriceList(items: PriceItem[], symbol: string, unit: string): string {
   items = items.filter((item) => item.symbol === symbol)
   return [items[0], items[items.length - 1]]
-    .map(({ start, price }) => `${toReadableNumber(start)}+: ${formatPrice(price)}`)
+    .map(({ start, price }) => `${toReadableNumber(start)}+: ${formatPrice(price, unit)}`)
     .join(', ')
 }
