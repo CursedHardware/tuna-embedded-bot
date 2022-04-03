@@ -20,6 +20,6 @@ export function toReadableNumber(input: Decimal.Value, base = 1000) {
 
 export function formatPrice(input: Decimal.Value) {
   input = new Decimal(input)
-  if (input.lt(ONE)) return `x${ONE.div(input).ceil()}`
+  if (input.lt(ONE)) return `${ONE.div(input).ceil()} PCS/1`
   return toReadableNumber(input)
 }
