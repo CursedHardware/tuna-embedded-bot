@@ -8,7 +8,7 @@ export function getLuckyURL(keywords: string[]) {
 }
 
 export function download(url: string) {
-  return tempy.file.task(async (inputFile): Promise<Buffer> => {
+  return tempy.file.task(async (outputFile): Promise<Buffer> => {
     await exec(
       'aria2c',
       '--check-certificate=false',
@@ -16,9 +16,9 @@ export function download(url: string) {
       '--split=32',
       '--user-agent=Mozilla/5.0',
       '--dir=/',
-      `--out=${inputFile}`,
+      `--out=${outputFile}`,
       url,
     )
-    return fs.readFile(inputFile)
+    return fs.readFile(outputFile)
   })
 }
