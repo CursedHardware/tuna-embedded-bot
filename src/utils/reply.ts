@@ -31,16 +31,16 @@ export interface Datasheet {
 export async function reply(ctx: Context<Update>, options: ReplyOptions) {
   const prices = Array.from(options.prices?.() ?? [])
   const caption = Array.from(options.html(prices)).join('\n')
-  const buttons = Array.from(options.markup?.() ?? [])
-  const photos: InputFile[] = Array.from(options.photos?.() ?? [])
   const datasheet = await getDatasheet(options)
   const extra: ExtraReplyMessage = { parse_mode: 'HTML', reply_to_message_id: ctx.message?.message_id }
-  if (buttons.length) {
+  {
+    const buttons = Array.from(options.markup?.() ?? [])
     extra.reply_markup = Markup.inlineKeyboard(buttons, { columns: 2 }).reply_markup
+    if (datasheet) {
+      extra.reply_markup.inline_keyboard.push([{ text: 'Datasheet', url: datasheet.url }])
+    }
   }
-  if (datasheet && extra.reply_markup && 'inline_keyboard' in extra.reply_markup) {
-    extra.reply_markup.inline_keyboard.push([{ text: 'Datasheet', url: datasheet.url }])
-  }
+  const photos: InputFile[] = Array.from(options.photos?.() ?? [])
   if (ctx.chat?.type === 'private' && datasheet && isPDF(datasheet.url)) {
     if (datasheet.source) {
       try {
