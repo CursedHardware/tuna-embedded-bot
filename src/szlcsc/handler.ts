@@ -33,13 +33,13 @@ export async function handle(ctx: Context, productCode: string) {
       if (product.stockSz) {
         yield `Stock (Shenzhen): ${getInStock(product, product.stockSz)}`
       }
-      yield `Price List (CNY): ${makePriceList(prices, 'CNY')}`
+      yield `Price List (CNY): ${makePriceList(prices, 'CNY', product.productUnit)}`
       if (productChina.splitRatio > 1) {
-        yield `Start Price (CNY): ${makeStartPrice(prices, 'CNY')}`
+        yield `Start Price (CNY): ${makeStartPrice(prices, 'CNY', product.productUnit)}`
       }
-      yield `Price List (USD): ${makePriceList(prices, 'USD')}`
+      yield `Price List (USD): ${makePriceList(prices, 'USD', product.productUnit)}`
       if (product.split > 1) {
-        yield `Start Price (USD): ${makeStartPrice(prices, 'USD')}`
+        yield `Start Price (USD): ${makeStartPrice(prices, 'USD', product.productUnit)}`
       }
     },
     *prices() {
@@ -77,16 +77,16 @@ export async function find(keyword: string) {
   return payload.result.productList ?? []
 }
 
-function makeStartPrice(items: PriceItem[], symbol: string) {
+function makeStartPrice(items: PriceItem[], symbol: string, unit: string) {
   items = items.filter((item) => item.symbol === symbol)
   const { price, start } = items[0]
   const minimumPrice = new Decimal(price).mul(start).toFixed(2)
-  return `${toReadableNumber(start)} PCS/${minimumPrice}`
+  return `${toReadableNumber(start)} ${unit}/${minimumPrice}`
 }
 
-function makePriceList(items: PriceItem[], symbol: string): string {
+function makePriceList(items: PriceItem[], symbol: string, unit: string): string {
   items = items.filter((item) => item.symbol === symbol)
   return [items[0], items[items.length - 1]]
-    .map(({ start, price }) => `${toReadableNumber(start)}+: ${formatPrice(price)}`)
+    .map(({ start, price }) => `${toReadableNumber(start)}+: ${formatPrice(price, unit)}`)
     .join(', ')
 }
