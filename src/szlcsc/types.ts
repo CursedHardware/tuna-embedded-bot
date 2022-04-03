@@ -13,6 +13,7 @@ export interface ProductIntl {
   productUnit: string
   minPacketUnit: string
   minPacketNumber: number
+  split: number
   stockNumber: number
   stockSz: number
   stockJs: number
@@ -25,6 +26,7 @@ export interface ProductIntl {
 export interface ProductChina {
   code: string
   priceList: Array<{ price: number; startNumber: number }>
+  splitRatio: number
   param: Record<string, string> | null
 }
 

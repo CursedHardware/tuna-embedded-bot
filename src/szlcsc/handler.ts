@@ -30,12 +30,10 @@ export async function handle(ctx: Context, productCode: string) {
       if (product.stockSz) {
         yield `Stock (Shenzhen): ${getInStock(product, product.stockSz)}`
       }
-      yield `Price List (CNY): ${makeSimpleList(productChina.priceList)
-        .map((_) => `${toReadableNumber(_.startNumber)}+: ${formatPrice(_.price)}`)
-        .join(', ')}`
-      yield `Price List (USD): ${makeSimpleList(product.productPriceList)
-        .map((_) => `${toReadableNumber(_.ladder)}+: ${formatPrice(_.usdPrice)}`)
-        .join(', ')}`
+      yield 'Price List (CNY):'
+      yield makePriceList(productChina.priceList, (_) => [_.startNumber * productChina.splitRatio, _.price])
+      yield 'Price List (USD):'
+      yield makePriceList(product.productPriceList, (_) => [_.ladder * product.split, _.usdPrice])
     },
     photos() {
       return (product.productImages ?? []).map((url): InputFile => ({ url }))
@@ -61,6 +59,9 @@ async function getProductFromIntl(product_code: string): Promise<ProductIntl> {
   return payload
 }
 
-function makeSimpleList<T>(elements: T[]): [T, T] {
+function makePriceList<T>(elements: T[], mapFn: (input: T) => [number, number]): string {
   return [elements[0], elements[elements.length - 1]]
+    .map(mapFn)
+    .map(([start, price]) => `${toReadableNumber(start)}+: ${formatPrice(price)}`)
+    .join(', ')
 }
