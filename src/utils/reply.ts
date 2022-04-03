@@ -38,7 +38,7 @@ export async function reply(ctx: Context<Update>, options: ReplyOptions) {
   if (buttons.length) {
     extra.reply_markup = Markup.inlineKeyboard(buttons, { columns: 2 }).reply_markup
   }
-  if (datasheet && 'inline_keyboard' in extra.reply_markup!) {
+  if (datasheet && extra.reply_markup && 'inline_keyboard' in extra.reply_markup) {
     extra.reply_markup.inline_keyboard.push([{ text: 'Datasheet', url: datasheet.url }])
   }
   if (ctx.chat?.type === 'private' && datasheet && isPDF(datasheet.url)) {
@@ -66,7 +66,7 @@ export async function reply(ctx: Context<Update>, options: ReplyOptions) {
 }
 
 async function getDatasheet({ datasheet, brand, model }: ReplyOptions) {
-  const ds = await datasheet?.()
+  const ds = datasheet?.()
   if (!ds || ds.keywords?.length === 0) return
   if (isPDF(ds.url)) {
     return {

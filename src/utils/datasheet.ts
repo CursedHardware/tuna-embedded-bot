@@ -1,10 +1,11 @@
 import fs from 'fs/promises'
 import tempy from 'tempy'
-import urlcat from 'urlcat'
 import { exec } from './process'
 
 export function getLuckyURL(keywords: string[]) {
-  return urlcat('https://duckduckgo.com', { q: ['!', ...keywords].join(' ') })
+  const url = new URL('https://duckduckgo.com')
+  url.searchParams.set('q', ['!', ...keywords].join(' '))
+  return url.toString()
 }
 
 export function download(url: string) {

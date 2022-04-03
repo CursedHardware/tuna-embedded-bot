@@ -13,21 +13,18 @@ export async function find(searchContent: string, pageIndex = 1, pageSize = 1) {
   return response.rows
 }
 
-export async function handle(ctx: Context, row: WareDetailRow) {
-  const brand = row.brandName.split('-')[0]
+export async function handle(ctx: Context, product: WareDetailRow) {
+  const brand = product.brandName.split('-')[0]
   return reply(ctx, {
     brand,
-    model: row.title,
+    model: product.title,
     datasheet() {
-      const name = `${brand}_${row.title}.pdf`
-      return { url: row.pdfUrl, name }
+      const name = `${brand}_${product.title}.pdf`
+      return { url: product.pdfUrl, name }
     },
     *html() {
-      yield brand
-      yield row.title
-    },
-    *markup() {
-      yield { text: '芯查查', url: row.xccShopSellSearchUrl }
+      yield `Brand: <code>${brand}</code>`
+      yield `Model: <code>${product.title}</code>`
     },
   })
 }

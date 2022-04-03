@@ -8,7 +8,6 @@ export interface WareDetailRow {
   brandName: string
   pdfUrl: string
   title: string
-  xccShopSellSearchUrl: string
 }
 
 export class XCCError extends Error {

@@ -13,16 +13,17 @@ export async function find(model: string, pageIndex = 0, pageSize = 1) {
 
 export async function handle(ctx: Context, id: string) {
   const product = await get<Product>('/detail/:id', { id })
-  const brandName = product.brand_name.split('-', 2)[1]
+  const brand = product.brand_name.split('-', 2)[1]
   return reply(ctx, {
-    brand: brandName,
+    brand,
     model: product.model,
     datasheet() {
       const { name, path } = product.dsFile ?? {}
-      return { url: path, name: name ?? `${brandName}_${product.model}.pdf` }
+      return { url: path, name: name ?? `${brand}_${product.model}.pdf` }
     },
     *html() {
-      yield `${brandName} ${product.model}`
+      yield `Brand: <code>${brand}</code>`
+      yield `Model: <code>${product.model}</code>`
     },
     *markup() {
       yield { text: '半导小芯', url: urlcat(HOST, '/:id.html', { id }) }
