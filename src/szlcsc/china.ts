@@ -51,14 +51,11 @@ export async function getProductFromChina(id: number) {
       { area: 'Jiangsu', amount: payload.jsWarehouseStockNumber },
       { area: 'Shenzhen', amount: payload.gdWarehouseStockNumber },
     ],
-    prices: [
-      ...((await getHKDPriceList(payload.id)) ?? []),
-      ...payload.priceList.map(({ price, startNumber }, index) => ({
-        symbol: 'CNY',
-        start: new Decimal(startNumber).mul(payload.splitRatio).toNumber(),
-        price: new Decimal(price).mul(payload.priceDiscount?.priceList[index].discount ?? '1').toNumber(),
-      })),
-    ],
+    prices: payload.priceList.map(({ price, startNumber }, index) => ({
+      symbol: 'CNY',
+      start: new Decimal(startNumber).mul(payload.splitRatio).toNumber(),
+      price: new Decimal(price).mul(payload.priceDiscount?.priceList[index].discount ?? '1').toNumber(),
+    })),
     photos: payload.image.split('<$>').map((url): InputFile => ({ url })),
     links: {
       立创商城: `https://item.szlcsc.com/${payload.id}.html`,
