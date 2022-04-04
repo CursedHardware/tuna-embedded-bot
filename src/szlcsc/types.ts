@@ -10,6 +10,7 @@ export interface Product {
   stocks: ProductStock[]
   prices: ProductPrice[]
   photos: InputFile[]
+  links: Record<string, string>
 }
 
 export interface ProductPackage {

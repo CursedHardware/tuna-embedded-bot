@@ -35,8 +35,9 @@ export async function handle(ctx: Context, code: string) {
       }
     },
     *markup() {
-      yield { text: product.code, url: `https://lcsc.com/product-detail/${product.code}.html` }
-      yield { text: '立创商城', url: `https://item.szlcsc.com/${product.id}.html` }
+      for (const [text, url] of Object.entries(product.links)) {
+        yield { text, url }
+      }
     },
   })
 }
@@ -45,8 +46,13 @@ async function getProduct(code: string) {
   code = code.toUpperCase()
   try {
     const product = await getProductFromIntl(code)
-    const productChina = await getProductFromChina(product.id)
-    product.prices.push(...productChina.prices)
+    try {
+      const productChina = await getProductFromChina(product.id)
+      product.prices = [...product.prices, ...productChina.prices]
+      product.links = { ...product.links, ...productChina.links }
+    } catch {
+      // ignore
+    }
     return product
   } catch {
     const productId = await getProductIdFromCode(code)

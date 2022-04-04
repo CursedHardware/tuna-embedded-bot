@@ -15,7 +15,7 @@ export function getReadablePrice(prices: Product['prices'], { minUnit }: Product
     last: toString(prices[prices.length - 1]),
     get start() {
       const { price, start } = prices[0]
-      if (start < 1) return
+      if (start < 2) return
       const minimumPrice = new Decimal(price).mul(start).toFixed(2)
       return `${minimumPrice}/${toReadableNumber(start)} ${minUnit}`
     },

@@ -1,7 +1,8 @@
 import Decimal from 'decimal.js'
+import { identity, isEmpty } from 'lodash'
 import fetch from 'node-fetch'
 import { InputFile } from 'telegraf/typings/core/types/typegram'
-import { ParamMap } from 'urlcat'
+import urlcat, { ParamMap } from 'urlcat'
 import { Product, SZLCSCError } from './types'
 
 export async function find(keyword: string) {
@@ -34,12 +35,12 @@ export async function getProductFromChina(id: number) {
     image: string
   }
   const payload = await get<ProductSZLCSC>(`https://item.szlcsc.com/phone/p/${id}`)
-  return Object.freeze<Product>({
+  return identity<Product>({
     id: payload.id,
     code: payload.code,
     brand: payload.brandName.replace(/\(.+\)$/, ''),
     model: payload.model,
-    datasheetURL: payload.pdfUrl ? new URL(payload.pdfUrl, 'https://atta.szlcsc.com').toString() : undefined,
+    datasheetURL: isEmpty(payload.pdfUrl) ? undefined : new URL(payload.pdfUrl, 'https://atta.szlcsc.com').toString(),
     package: {
       standard: payload.standard,
       minUnit: payload.stockUnit,
@@ -56,6 +57,13 @@ export async function getProductFromChina(id: number) {
       price: new Decimal(price).mul(payload.priceDiscount?.priceList[index].discount ?? '1').toNumber(),
     })),
     photos: payload.image.split('<$>').map((url): InputFile => ({ url })),
+    links: {
+      立创商城: `https://item.szlcsc.com/${payload.id}.html`,
+      SMT: urlcat('https://jlc.com/portal/smtComponentList.html', {
+        componentCode: payload.code,
+        sourceName: 'jlcMall',
+      }),
+    },
   })
 }
 

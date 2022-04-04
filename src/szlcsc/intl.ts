@@ -1,4 +1,5 @@
 import Decimal from 'decimal.js'
+import { identity, isEmpty } from 'lodash'
 import fetch from 'node-fetch'
 import { InputFile } from 'telegraf/typings/core/types/typegram'
 import urlcat from 'urlcat'
@@ -26,12 +27,12 @@ export async function getProductFromIntl(product_code: string) {
   }
   const payload: ProductLCSC = await response.json()
   if (!payload?.brandNameEn) throw new SZLCSCError('No Result')
-  return Object.freeze<Product>({
+  return identity<Product>({
     id: payload.productId,
     code: payload.productCode,
     brand: payload.brandNameEn,
     model: payload.productModel,
-    datasheetURL: payload.pdfUrl,
+    datasheetURL: isEmpty(payload.pdfUrl) ? undefined : payload.pdfUrl,
     package: {
       standard: payload.encapStandard,
       minUnit: payload.productUnit,
@@ -48,6 +49,7 @@ export async function getProductFromIntl(product_code: string) {
       price: new Decimal(_.usdPrice).mul(_.discountRate ?? '1').toNumber(),
     })),
     photos: payload.productImages.map((url): InputFile => ({ url })),
+    links: { [payload.productCode]: `https://lcsc.com/product-detail/${payload.productCode}.html` },
   })
 }
 
