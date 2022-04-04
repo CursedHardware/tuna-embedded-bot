@@ -1,7 +1,6 @@
 import Decimal from 'decimal.js'
 import { identity, isEmpty } from 'lodash'
 import fetch from 'node-fetch'
-import { InputFile } from 'telegraf/typings/core/types/typegram'
 import urlcat, { ParamMap } from 'urlcat'
 import { Product, ProductPrice, SZLCSCError } from './types'
 
@@ -32,7 +31,7 @@ export async function getProductFromChina(id: number) {
     priceDiscount: { priceList: Array<{ discount: number; spNumber: number; price: number }> }
     priceList: Array<{ price: number; startNumber: number }>
     splitRatio: number
-    image: string
+    image?: string
   }
   const payload = await get<ProductSZLCSC>(`https://item.szlcsc.com/phone/p/${id}`)
   return identity<Product>({
@@ -49,14 +48,14 @@ export async function getProductFromChina(id: number) {
     },
     stocks: [
       { area: 'Jiangsu', amount: payload.jsWarehouseStockNumber },
-      { area: 'Shenzhen', amount: payload.gdWarehouseStockNumber },
+      { area: 'Guangdong', amount: payload.gdWarehouseStockNumber },
     ],
     prices: payload.priceList.map(({ price, startNumber }, index) => ({
       symbol: 'CNY',
       start: new Decimal(startNumber).mul(payload.splitRatio).toNumber(),
       price: new Decimal(price).mul(payload.priceDiscount?.priceList[index].discount ?? '1').toNumber(),
     })),
-    photos: payload.image.split('<$>').map((url): InputFile => ({ url })),
+    photos: payload.image?.split('<$>') ?? [],
     links: {
       立创商城: `https://item.szlcsc.com/${payload.id}.html`,
       SMT: urlcat('https://jlc.com/portal/smtComponentList.html', {

@@ -1,7 +1,6 @@
 import Decimal from 'decimal.js'
 import { identity, isEmpty } from 'lodash'
 import fetch from 'node-fetch'
-import { InputFile } from 'telegraf/typings/core/types/typegram'
 import urlcat from 'urlcat'
 import { Product, SZLCSCError } from './types'
 
@@ -41,14 +40,14 @@ export async function getProductFromIntl(product_code: string) {
     },
     stocks: [
       { area: 'Jiangsu', amount: payload.stockJs },
-      { area: 'Shenzhen', amount: payload.stockSz },
+      { area: 'Guangdong', amount: payload.stockSz },
     ],
     prices: payload.productPriceList.map((_) => ({
       symbol: 'USD',
       start: _.ladder,
       price: new Decimal(_.usdPrice).mul(_.discountRate ?? '1').toNumber(),
     })),
-    photos: payload.productImages.map((url): InputFile => ({ url })),
+    photos: payload.productImages,
     links: { [payload.productCode]: `https://lcsc.com/product-detail/${payload.productCode}.html` },
   })
 }
