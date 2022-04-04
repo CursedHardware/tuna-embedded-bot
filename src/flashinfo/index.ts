@@ -17,7 +17,7 @@ export async function handle(ctx: Context, partNumber: string) {
   const datasheet = await get<FlashDatasheet>('/searchFlashByPn', { partNumber })
   return reply(ctx, {
     brand: datasheet.brand,
-    model: datasheet.partNumber,
+    model: datasheet.micronPartnumber ?? datasheet.partNumber,
     datasheet() {
       return { keywords: [] }
     },

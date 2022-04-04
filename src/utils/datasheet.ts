@@ -9,17 +9,15 @@ export function getLuckyURL(keywords: string[]) {
 }
 
 export function download(url: string) {
-  return tempy.file.task(async (outputFile): Promise<Buffer> => {
-    await exec(
-      'aria2c',
-      '--check-certificate=false',
-      '--max-concurrent-downloads=32',
-      '--split=32',
-      '--user-agent=Mozilla/5.0',
-      '--dir=/',
-      `--out=${outputFile}`,
-      url,
-    )
+  const options = [
+    '--check-certificate=false',
+    '--max-concurrent-downloads=32',
+    '--split=32',
+    '--user-agent=Mozilla/5.0',
+    '--dir=/',
+  ]
+  return tempy.file.task(async (outputFile) => {
+    await exec('aria2c', ...options, `--out=${outputFile}`, url)
     return fs.readFile(outputFile)
   })
 }

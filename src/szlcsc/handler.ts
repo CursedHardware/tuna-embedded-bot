@@ -1,12 +1,12 @@
 import Decimal from 'decimal.js'
-import fetch from 'node-fetch'
 import type { Context } from 'telegraf'
 import type { InputFile } from 'telegraf/typings/core/types/typegram'
-import urlcat from 'urlcat'
 import { formatPrice, toReadableNumber } from '../utils/number'
 import { PriceItem, reply } from '../utils/reply'
-import { Payload, SearchedProduct, SZLCSCError } from './types'
-import { getInStock, getPackage, getProductFromChina, getProductFromIntl } from './utils'
+import { getProductFromChina } from './china'
+import { getProductFromIntl } from './intl'
+import { getInStock, getPackage } from './utils'
+export { find } from './china'
 
 export async function handle(ctx: Context, productCode: string) {
   productCode = productCode.toUpperCase()
@@ -68,13 +68,6 @@ export async function handle(ctx: Context, productCode: string) {
       yield { text: '立创商城', url: `https://item.szlcsc.com/${product.productId}.html` }
     },
   })
-}
-
-export async function find(keyword: string) {
-  const response = await fetch(urlcat('https://so.szlcsc.com/phone/p/product/search', { keyword }))
-  const payload: Payload<{ productList: SearchedProduct[] }> = await response.json()
-  if (payload.code !== 200) throw new SZLCSCError(payload.msg)
-  return payload.result.productList ?? []
 }
 
 function makeStartPrice(items: PriceItem[], symbol: string, unit: string) {

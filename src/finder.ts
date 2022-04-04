@@ -1,7 +1,9 @@
 import { Composer } from 'telegraf'
+import * as EMakerZone from './emakerzone'
 import * as FlashInfo from './flashinfo'
 import * as SEMIEE from './semiee'
 import * as SZLCSC from './szlcsc'
+import { findSearchLink } from './szlcsc/intl'
 import { getQuery, group, isBotCommand } from './utils/telegraf'
 import * as XCC from './xcc'
 
@@ -17,26 +19,39 @@ export const AnyText = Composer.on('text', async (ctx, next) => {
 
 export const Finder = Composer.command(
   ['/find', '/first', '/search'],
+  (ctx, next) => {
+    ctx.state.query = getQuery(ctx.message)
+    return next()
+  },
   async (ctx, next) => {
-    const products = await SZLCSC.find(getQuery(ctx.message))
+    const products = await SZLCSC.find(ctx.state.query)
     if (products.length === 0) return next()
     const { code } = products[0]
+    if (!(await findSearchLink(code))) return next()
     return group(ctx, `Reading <code>${code}</code> from szlcsc.com`, () => SZLCSC.handle(ctx, code))
   },
   async (ctx, next) => {
-    const products = await SEMIEE.find(getQuery(ctx.message))
+    const products = await SEMIEE.find(ctx.state.query)
     if (products.length === 0) return next()
     const { id, model } = products[0]
     return group(ctx, `Reading <code>${model}</code> from semiee.com`, () => SEMIEE.handle(ctx, id))
   },
   async (ctx, next) => {
-    const products = await XCC.find(getQuery(ctx.message))
+    const products = await EMakerZone.find(ctx.state.query)
+    if (products.length === 0) return next()
+    const { pat_number } = products[0]
+    return group(ctx, `Reading <code>${pat_number}</code> from emakerzone.com`, () =>
+      EMakerZone.handle(ctx, products[0]),
+    )
+  },
+  async (ctx, next) => {
+    const products = await XCC.find(ctx.state.query)
     if (products.length === 0) return next()
     const { title } = products[0]
     return group(ctx, `Reading <code>${title}</code> from xcc.com`, () => XCC.handle(ctx, products[0]))
   },
   async (ctx, next) => {
-    const products = await FlashInfo.find(getQuery(ctx.message))
+    const products = await FlashInfo.find(ctx.state.query)
     if (products.length === 0) return next()
     const model = products[0]
     return group(ctx, `Reading <code>${model}</code> from flashinfo.top`, () => FlashInfo.handle(ctx, model))
