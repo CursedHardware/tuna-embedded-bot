@@ -18,9 +18,7 @@ export async function handle(ctx: Context, partNumber: string) {
   return reply(ctx, {
     brand: datasheet.brand,
     model: datasheet.micronPartnumber ?? datasheet.partNumber,
-    datasheet() {
-      return { keywords: [] }
-    },
+    datasheet: { keywords: [] },
     *html() {
       yield `Brand: <code>${datasheet.brand.split('/')[0]}</code>`
       if (datasheet.micronPartnumber) {

@@ -1,3 +1,5 @@
+import { Message } from 'telegraf/typings/core/types/typegram'
+import { getEntities } from '../utils/telegraf'
 import { getProductFromChina } from './china'
 
 export async function getProductCodeFromId(id: number) {
@@ -18,4 +20,13 @@ export async function getProductCodeFromURL(input: string) {
     if (match?.groups?.code) return match.groups.code
   }
   return null
+}
+
+export async function getProductCodeList(message: Message.TextMessage) {
+  const products = Array.from(message.text.matchAll(/\b(C\d+)\b/gi)).map((match) => match[1])
+  for (const url of getEntities(message, 'url')) {
+    const code = await getProductCodeFromURL(url)
+    if (code) products.push(code)
+  }
+  return new Set(products)
 }

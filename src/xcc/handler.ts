@@ -44,9 +44,9 @@ export async function handle(ctx: Context, product: WareDetailRow) {
   return reply(ctx, {
     brand,
     model: product.title,
-    datasheet() {
-      const name = `${brand}_${product.title}.pdf`
-      return { url: product.pdfUrl, name }
+    datasheet: {
+      url: product.pdfUrl,
+      name: `${brand}_${product.title}.pdf`,
     },
     *html() {
       yield `Brand: <code>${brand}</code>`

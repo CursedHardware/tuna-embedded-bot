@@ -52,12 +52,3 @@ export async function getProductFromIntl(product_code: string) {
     links: { [payload.productCode]: `https://lcsc.com/product-detail/${payload.productCode}.html` },
   })
 }
-
-export async function findSearchLink(keyword: string, type = 'LCSC Part Number') {
-  const response = await fetch(urlcat(HOST, '/search/search-link', { type, keyword }))
-  interface Payload {
-    url: string
-  }
-  const payload: Payload = await response.json()
-  return payload?.url
-}

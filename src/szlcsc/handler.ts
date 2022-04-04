@@ -13,10 +13,11 @@ export async function handle(ctx: Context, code: string) {
     brand: product.brand,
     model: product.model,
     photos: product.photos,
-    datasheet() {
-      const name = `${product.code}_${product.model}.pdf`
-      return { url: product.datasheetURL, name }
+    datasheet: {
+      url: product.datasheetURL,
+      name: `${product.code}_${product.model}.pdf`,
     },
+    links: product.links,
     *html() {
       yield `Part#: <code>${product.code}</code>`
       yield `Brand: <code>${product.brand}</code>`
@@ -32,11 +33,6 @@ export async function handle(ctx: Context, code: string) {
         const { first, last, start } = getReadablePrice(prices, product.package)
         yield `Price List (${symbol}): ${first}, ${last}`
         if (start) yield `Start Price: ${start}`
-      }
-    },
-    *markup() {
-      for (const [text, url] of Object.entries(product.links)) {
-        yield { text, url }
       }
     },
   })

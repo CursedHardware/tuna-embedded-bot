@@ -17,16 +17,16 @@ export async function handle(ctx: Context, id: string) {
   return reply(ctx, {
     brand,
     model: product.model,
-    datasheet() {
-      const { name, path } = product.dsFile ?? {}
-      return { url: path, name: name ?? `${brand}_${product.model}.pdf` }
+    datasheet: {
+      url: product.dsFile?.path,
+      name: product.dsFile?.name ?? `${brand}_${product.model}.pdf`,
+    },
+    links: {
+      半导小芯: urlcat(HOST, `/${id}.html`),
     },
     *html() {
       yield `Brand: <code>${brand}</code>`
       yield `Model: <code>${product.model}</code>`
-    },
-    *markup() {
-      yield { text: '半导小芯', url: urlcat(HOST, `/${id}.html`) }
     },
   })
 }

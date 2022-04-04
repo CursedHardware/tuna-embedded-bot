@@ -3,18 +3,17 @@ import * as EMakerZone from './emakerzone'
 import * as FlashInfo from './flashinfo'
 import * as SEMIEE from './semiee'
 import * as SZLCSC from './szlcsc'
-import { findSearchLink } from './szlcsc/intl'
 import { getQuery, group, isBotCommand } from './utils/telegraf'
 import * as XCC from './xcc'
 
 export const AnyText = Composer.on('text', async (ctx, next) => {
   if (ctx.chat.type !== 'private') return next()
   if (isBotCommand(ctx.message)) return next()
-  const products = await SZLCSC.getProducts(ctx.message)
-  if (!products.length) return next()
-  return Promise.all(
-    products.map((code) => group(ctx, `Reading <code>${code}</code> from szlcsc.com`, () => SZLCSC.handle(ctx, code))),
-  )
+  const codeList = await SZLCSC.getProductCodeList(ctx.message)
+  if (!codeList.size) return next()
+  for (const code of codeList) {
+    await group(ctx, `Reading <code>${code}</code> from szlcsc.com`, () => SZLCSC.handle(ctx, code))
+  }
 })
 
 export const Finder = Composer.command(
@@ -27,7 +26,6 @@ export const Finder = Composer.command(
     const products = await SZLCSC.find(ctx.state.query)
     if (products.length === 0) return next()
     const { code } = products[0]
-    if (!(await findSearchLink(code))) return next()
     return group(ctx, `Reading <code>${code}</code> from szlcsc.com`, () => SZLCSC.handle(ctx, code))
   },
   async (ctx, next) => {

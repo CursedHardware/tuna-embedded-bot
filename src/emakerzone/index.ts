@@ -17,23 +17,18 @@ export async function handle(ctx: Context, product: SearchedResult) {
   return reply(ctx, {
     brand: product.brand,
     model: product.pat_number,
-    datasheet() {
-      return {
-        name: `${product.brand}_${product.pat_number}.pdf`,
-        url: product.link,
-      }
+    datasheet: {
+      name: `${product.brand}_${product.pat_number}.pdf`,
+      url: product.link,
+    },
+    links: {
+      创易栈: urlcat('http://new.emakerzone.com', `${routes[product.tag]}_info`, { modelid: product.id }),
     },
     *html() {
       yield `Brand: <code>${product.brand}</code>`
       yield `Model: <code>${product.pat_number}</code>`
       yield `Package: <code>${product.package}</code>`
       yield `Description: <code>${product.description}</code>`
-    },
-    *markup() {
-      yield {
-        text: '创易栈',
-        url: urlcat('http://new.emakerzone.com', `${routes[product.tag]}_info`, { modelid: product.id }),
-      }
     },
   })
 }
