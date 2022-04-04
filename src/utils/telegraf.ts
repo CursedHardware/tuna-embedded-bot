@@ -1,3 +1,4 @@
+import { encode } from 'html-entities'
 import { Composer, Context } from 'telegraf'
 import { Message, MessageEntity } from 'telegraf/typings/core/types/typegram'
 
@@ -46,7 +47,7 @@ export const ErrorHandler = Composer.unwrap(async (ctx, next) => {
     await next()
   } catch (error) {
     console.error({ error })
-    return ctx.reply(`<pre>${error}</pre>`, {
+    return ctx.reply(`<pre>${encode(String(error))}</pre>`, {
       parse_mode: 'HTML',
       reply_to_message_id: ctx.message?.message_id,
     })

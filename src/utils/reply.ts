@@ -9,17 +9,10 @@ import { getPDFPage, isPDF } from './pdf'
 interface ReplyOptions {
   brand: string
   model: string
-  html(prices: PriceItem[]): Generator<string>
+  html(): Generator<string>
   datasheet?(): Datasheet
-  prices?(): Generator<PriceItem>
   photos?(): Generator<InputFile> | InputFile[]
   markup?(): Generator<InlineKeyboardButton>
-}
-
-export interface PriceItem {
-  start: number
-  price: number
-  symbol: string
 }
 
 export interface Datasheet {
@@ -29,8 +22,7 @@ export interface Datasheet {
 }
 
 export async function reply(ctx: Context<Update>, options: ReplyOptions) {
-  const prices = Array.from(options.prices?.() ?? [])
-  const caption = Array.from(options.html(prices)).join('\n')
+  const caption = Array.from(options.html()).join('\n')
   const datasheet = await getDatasheet(options)
   const extra: ExtraReplyMessage = { parse_mode: 'HTML', reply_to_message_id: ctx.message?.message_id }
   {

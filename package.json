@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "decimal.js": "^10.3.1",
+    "html-entities": "^2.3.3",
     "lodash": "^4.17.21",
     "node-fetch": "^2.6.7",
     "telegraf": "^4.7.0",

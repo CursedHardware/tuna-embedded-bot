@@ -1,3 +1,4 @@
+import fetch from 'node-fetch'
 import urlcat, { ParamMap } from 'urlcat'
 import { EMakerZoneError } from './types'
 
