@@ -23,10 +23,10 @@ export function getReadablePrice(prices: Product['prices'], { minUnit }: Product
 }
 
 export function getReadableStock(stocks: Product['stocks'], { amount, minUnit, unit }: Product['package']) {
-  const toString = (amount: Decimal.Value) => {
-    amount = new Decimal(amount)
-    const pkg = `${toReadableNumber(amount.div(amount))} ${unit}`
-    return `${toReadableNumber(amount)} ${minUnit} (${pkg})`
+  const toString = (value: Decimal.Value) => {
+    value = new Decimal(value)
+    const pkg = `${toReadableNumber(value.div(amount))} ${unit}`
+    return `${toReadableNumber(value)} ${minUnit} (${pkg})`
   }
   const inStocks = stocks.filter((stock) => stock.amount > 0)
   return {

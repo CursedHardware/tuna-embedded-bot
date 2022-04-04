@@ -3,7 +3,7 @@ import { identity, isEmpty } from 'lodash'
 import fetch from 'node-fetch'
 import { InputFile } from 'telegraf/typings/core/types/typegram'
 import urlcat, { ParamMap } from 'urlcat'
-import { Product, SZLCSCError } from './types'
+import { Product, ProductPrice, SZLCSCError } from './types'
 
 export async function find(keyword: string) {
   interface Product {
@@ -51,11 +51,14 @@ export async function getProductFromChina(id: number) {
       { area: 'Jiangsu', amount: payload.jsWarehouseStockNumber },
       { area: 'Shenzhen', amount: payload.gdWarehouseStockNumber },
     ],
-    prices: payload.priceList.map(({ price, startNumber }, index) => ({
-      symbol: 'CNY',
-      start: new Decimal(startNumber).mul(payload.splitRatio).toNumber(),
-      price: new Decimal(price).mul(payload.priceDiscount?.priceList[index].discount ?? '1').toNumber(),
-    })),
+    prices: [
+      ...((await getHKDPriceList(payload.id)) ?? []),
+      ...payload.priceList.map(({ price, startNumber }, index) => ({
+        symbol: 'CNY',
+        start: new Decimal(startNumber).mul(payload.splitRatio).toNumber(),
+        price: new Decimal(price).mul(payload.priceDiscount?.priceList[index].discount ?? '1').toNumber(),
+      })),
+    ],
     photos: payload.image.split('<$>').map((url): InputFile => ({ url })),
     links: {
       立创商城: `https://item.szlcsc.com/${payload.id}.html`,
@@ -83,4 +86,31 @@ export async function get<T>(url: string, params: ParamMap = {}) {
   const payload: Payload = await response.json()
   if (payload.code !== 200) throw new SZLCSCError(payload.msg)
   return payload.result
+}
+
+export async function getHKDPriceList(productId: number) {
+  const link = urlcat('https://cart.szlcsc.com/check/status/jsonp', {
+    productId,
+    callback: '',
+  })
+  const response = await fetch(link)
+  interface Price {
+    startPurchasedNumber: number
+    productPrice: number
+  }
+  interface Payload {
+    code: number
+    result?: {
+      productHkDollerPriceList?: Price[]
+    }
+  }
+  const payload: Payload = JSON.parse((await response.text()).slice(1, -1))
+  if (payload.code !== 200) throw new SZLCSCError()
+  return payload.result?.productHkDollerPriceList?.map(
+    ({ productPrice, startPurchasedNumber }): ProductPrice => ({
+      symbol: 'HKD',
+      start: startPurchasedNumber,
+      price: productPrice,
+    }),
+  )
 }
