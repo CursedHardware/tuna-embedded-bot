@@ -16,7 +16,11 @@ export async function findARK(input_query: string) {
     label: string
     prodUrl: string
   }
-  const results: Result[] = await response.json()
-  if (results.length === 0) throw new IntelError('No Result')
-  return results
+  try {
+    const results: Result[] = await response.json()
+    if (results.length === 0) throw new IntelError('No Result')
+    return results
+  } catch {
+    throw new IntelError('No Result')
+  }
 }

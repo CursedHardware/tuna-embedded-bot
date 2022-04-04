@@ -1,5 +1,3 @@
-export const API_PLATFORM = 'https://platform.emakerzone.com'
-
 export const routes = Object.freeze<Record<string, string>>({
   mcu: '/general_MCU',
   motor_soc: '/motor_SOC',
@@ -16,12 +14,6 @@ export const routes = Object.freeze<Record<string, string>>({
   tah: '/temperature_humidity_sensor',
 })
 
-export interface Payload<T> {
-  errno: number
-  errmsg: string
-  data: T
-}
-
 export interface SearchedResult {
   id: number
   brand: string
@@ -30,4 +22,8 @@ export interface SearchedResult {
   pat_number: string
   link: string
   tag: string
+}
+
+export class EMakerZoneError extends Error {
+  name = 'EMakerZoneError'
 }

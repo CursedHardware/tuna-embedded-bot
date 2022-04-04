@@ -2,7 +2,7 @@ import fetch, { RequestInit } from 'node-fetch'
 import { Context } from 'telegraf'
 import urlcat, { ParamMap } from 'urlcat'
 import { reply } from '../utils/reply'
-import { Payload, Product, SearchedResult, SemieeError } from './types'
+import { Product, SearchedResult, SemieeError } from './types'
 
 const HOST = 'https://www.semiee.com'
 const HOST_API = urlcat(HOST, '/bdxx-api/chip')
@@ -32,8 +32,13 @@ export async function handle(ctx: Context, id: string) {
 }
 
 async function get<T>(pathname: string, params: ParamMap = {}, init?: RequestInit) {
+  interface Payload {
+    code: number
+    remark: string
+    result: T
+  }
   const response = await fetch(urlcat(HOST_API, pathname, params), init)
-  const payload: Payload<T> = await response.json()
+  const payload: Payload = await response.json()
   if (payload.code !== 0) throw new SemieeError(payload.remark)
   return payload.result
 }

@@ -1,9 +1,3 @@
-export interface Payload<T> {
-  code: number
-  msg: string
-  result: T
-}
-
 export interface ProductIntl {
   productId: number
   productCode: string
@@ -45,8 +39,4 @@ export interface ProductPrice {
 
 export class SZLCSCError extends Error {
   name = 'SZLCSCError'
-
-  constructor(message: string) {
-    super(message)
-  }
 }

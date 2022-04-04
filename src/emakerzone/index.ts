@@ -1,14 +1,16 @@
-import fetch from 'node-fetch'
 import { Context } from 'telegraf'
 import urlcat from 'urlcat'
 import { reply } from '../utils/reply'
-import { API_PLATFORM, Payload, routes, SearchedResult } from './types'
+import { get } from './handler'
+import { routes, SearchedResult } from './types'
 
 export async function find(keywords: string) {
-  const response = await fetch(urlcat(API_PLATFORM, '/e-select/fe/search', { keywords, pageNum: 1, pageSize: 1 }))
-  const payload: Payload<{ list: SearchedResult[] }> = await response.json()
-  if (payload.errno !== 0) throw new Error(payload.errmsg)
-  return payload.data.list
+  const { list } = await get<{ list: SearchedResult[] }>('/e-select/fe/search', {
+    keywords,
+    pageNum: 1,
+    pageSize: 1,
+  })
+  return list
 }
 
 export async function handle(ctx: Context, product: SearchedResult) {
