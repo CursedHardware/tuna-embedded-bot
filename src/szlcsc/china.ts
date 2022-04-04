@@ -25,6 +25,7 @@ export async function getProductFromChina(id: number) {
     packageUnit: string
     stockUnit: string
     productMinEncapsulationNumber: number
+    pdfUrl: string
     jsWarehouseStockNumber: number
     gdWarehouseStockNumber: number
     priceDiscount: { priceList: Array<{ discount: number; spNumber: number; price: number }> }
@@ -38,6 +39,7 @@ export async function getProductFromChina(id: number) {
     code: payload.code,
     brand: payload.brandName.replace(/\(.+\)$/, ''),
     model: payload.model,
+    datasheetURL: payload.pdfUrl ? new URL(payload.pdfUrl, 'https://atta.szlcsc.com').toString() : undefined,
     package: {
       standard: payload.standard,
       minUnit: payload.stockUnit,

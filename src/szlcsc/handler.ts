@@ -11,6 +11,7 @@ export async function handle(ctx: Context, code: string) {
   return reply(ctx, {
     brand: product.brand,
     model: product.model,
+    photos: product.photos,
     datasheet() {
       const name = `${product.code}_${product.model}.pdf`
       return { url: product.datasheetURL, name }
@@ -41,9 +42,6 @@ export async function handle(ctx: Context, code: string) {
           }
         }
       }
-    },
-    photos() {
-      return product.photos
     },
     *markup() {
       yield { text: product.code, url: `https://lcsc.com/product-detail/${product.code}.html` }

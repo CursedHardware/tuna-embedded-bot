@@ -9,9 +9,9 @@ import { getPDFPage, isPDF } from './pdf'
 interface ReplyOptions {
   brand: string
   model: string
+  photos?: InputFile[]
   html(): Generator<string>
   datasheet?(): Datasheet
-  photos?(): Generator<InputFile> | InputFile[]
   markup?(): Generator<InlineKeyboardButton>
 }
 
@@ -32,7 +32,7 @@ export async function reply(ctx: Context<Update>, options: ReplyOptions) {
       extra.reply_markup.inline_keyboard.push([{ text: 'Datasheet', url: datasheet.url }])
     }
   }
-  const photos: InputFile[] = Array.from(options.photos?.() ?? [])
+  const photos = options.photos ?? []
   if (ctx.chat?.type === 'private' && datasheet && isPDF(datasheet.url)) {
     if (datasheet.source) {
       try {

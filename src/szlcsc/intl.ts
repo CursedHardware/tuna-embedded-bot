@@ -17,7 +17,6 @@ export async function getProductFromIntl(product_code: string) {
     productUnit: string
     minPacketUnit: string
     minPacketNumber: number
-    split: number
     stockNumber: number
     stockSz: number
     stockJs: number
@@ -32,6 +31,7 @@ export async function getProductFromIntl(product_code: string) {
     code: payload.productCode,
     brand: payload.brandNameEn,
     model: payload.productModel,
+    datasheetURL: payload.pdfUrl,
     package: {
       standard: payload.encapStandard,
       minUnit: payload.productUnit,
@@ -50,63 +50,6 @@ export async function getProductFromIntl(product_code: string) {
     photos: payload.productImages.map((url): InputFile => ({ url })),
   })
 }
-
-// return reply(ctx, {
-//   brand: product.brandNameEn,
-//   model: product.productModel,
-//   datasheet() {
-//     const name = `${product.productCode}_${product.productModel}.pdf`
-//     return { url: product.pdfUrl, name }
-//   },
-//   *html(prices) {
-//     yield `Part#: <code>${product.productCode}</code>`
-//     yield `Brand: <code>${product.brandNameEn}</code>`
-//     yield `Model: <code>${product.productModel}</code>`
-//     yield `Package: <code>${product.encapStandard}</code> (${getPackage(product)})`
-//     if (product.stockJs && product.stockSz) {
-//       yield `Stock: ${getInStock(product, product.stockNumber)}`
-//     }
-//     if (product.stockJs) {
-//       yield `Stock (Jiangsu): ${getInStock(product, product.stockJs)}`
-//     }
-//     if (product.stockSz) {
-//       yield `Stock (Shenzhen): ${getInStock(product, product.stockSz)}`
-//     }
-//     yield `Price List (CNY): ${makePriceList(prices, 'CNY', product.productUnit)}`
-//     if (productChina.splitRatio > 1) {
-//       yield `Start Price (CNY): ${makeStartPrice(prices, 'CNY', product.productUnit)}`
-//     }
-//     yield `Price List (USD): ${makePriceList(prices, 'USD', product.productUnit)}`
-//     if (product.split > 1) {
-//       yield `Start Price (USD): ${makeStartPrice(prices, 'USD', product.productUnit)}`
-//     }
-//   },
-//   *prices() {
-//     if (productChina.priceDiscount) {
-//       for (let { spNumber: start, price, discount } of productChina.priceDiscount.priceList) {
-//         price = new Decimal(price).mul(discount).toNumber()
-//         start = new Decimal(start).mul(productChina.splitRatio).toNumber()
-//         yield { symbol: 'CNY', start, price }
-//       }
-//     } else {
-//       for (let { startNumber: start, price } of productChina.priceList) {
-//         start = new Decimal(start).mul(productChina.splitRatio).toNumber()
-//         yield { symbol: 'CNY', start, price }
-//       }
-//     }
-//     for (const { ladder, usdPrice, discountRate } of product.productPriceList) {
-//       const price = new Decimal(usdPrice).mul(discountRate ?? '1').toNumber()
-//       yield { symbol: 'USD', start: ladder, price }
-//     }
-//   },
-//   photos() {
-//     return (product.productImages ?? []).map((url): InputFile => ({ url }))
-//   },
-//   *markup() {
-//     yield { text: product.productCode, url: `https://lcsc.com/product-detail/${product.productCode}.html` }
-//     yield { text: '立创商城', url: `https://item.szlcsc.com/${product.productId}.html` }
-//   },
-// })
 
 export async function findSearchLink(keyword: string, type = 'LCSC Part Number') {
   const response = await fetch(urlcat(HOST, '/search/search-link', { type, keyword }))
