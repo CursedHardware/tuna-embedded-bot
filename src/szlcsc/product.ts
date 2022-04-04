@@ -1,26 +1,42 @@
 import Decimal from 'decimal.js'
-import { formatPrice, toReadableNumber } from '../utils/number'
-import type { Product, ProductPackage } from './types'
+import { toReadableNumber } from '../utils/number'
+import type { Product, ProductPackage, ProductPrice } from './types'
 
-export function makeStartPrice(prices: Product['prices'], { minUnit }: ProductPackage) {
-  const { price, start } = prices[0]
-  const minimumPrice = new Decimal(price).mul(start).toFixed(2)
-  return `${toReadableNumber(start)} ${minUnit}/${minimumPrice}`
-}
-
-export function makePriceList(prices: Product['prices'], { minUnit }: Product['package']): string {
-  return [prices[0], prices[prices.length - 1]]
-    .map(({ start, price }) => `${toReadableNumber(start)}+: ${formatPrice(price, minUnit)}`)
-    .join(', ')
-}
+const ONE = new Decimal('1')
 
 export function getPackage({ amount, minUnit, unit }: ProductPackage) {
   return `${toReadableNumber(amount)} ${minUnit}/${unit}`
 }
 
-export function getInStock({ amount, minUnit, unit }: ProductPackage, stock: Decimal.Value) {
-  stock = new Decimal(stock)
-  if (stock.isZero()) return 'Out of Stock'
-  const packet = `${toReadableNumber(stock.div(amount))} ${unit}`
-  return `${toReadableNumber(stock)} ${minUnit} (${packet})`
+export function getReadablePrice(prices: Product['prices'], { minUnit }: Product['package']) {
+  const toString = ({ start, price }: ProductPrice) => `${toReadableNumber(start)}+: ${formatPrice(price, minUnit)}`
+  return {
+    first: toString(prices[0]),
+    last: toString(prices[prices.length - 1]),
+    get start() {
+      const { price, start } = prices[0]
+      if (start < 1) return
+      const minimumPrice = new Decimal(price).mul(start).toFixed(2)
+      return `${minimumPrice}/${toReadableNumber(start)} ${minUnit}`
+    },
+  }
+}
+
+export function getReadableStock(stocks: Product['stocks'], { amount, minUnit, unit }: Product['package']) {
+  const toString = (amount: Decimal.Value) => {
+    amount = new Decimal(amount)
+    const pkg = `${toReadableNumber(amount.div(amount))} ${unit}`
+    return `${toReadableNumber(amount)} ${minUnit} (${pkg})`
+  }
+  const inStocks = stocks.filter((stock) => stock.amount > 0)
+  return {
+    totalStocks: toString(Decimal.sum(...stocks.map((stock) => stock.amount))),
+    stocks: inStocks.map(({ area, amount }) => ({ area, amount: toString(amount) })),
+  }
+}
+
+export function formatPrice(input: Decimal.Value, unit: string) {
+  input = new Decimal(input)
+  if (input.lt(ONE)) return `1/${ONE.div(input).ceil()} ${unit}`
+  return toReadableNumber(input)
 }

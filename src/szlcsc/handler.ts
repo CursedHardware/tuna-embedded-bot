@@ -1,8 +1,9 @@
+import { groupBy } from 'lodash'
 import type { Context } from 'telegraf'
 import { reply } from '../utils/reply'
 import { getProductFromChina, getProductIdFromCode } from './china'
 import { getProductFromIntl } from './intl'
-import { getInStock, getPackage, makePriceList, makeStartPrice } from './product'
+import { getPackage, getReadablePrice, getReadableStock } from './product'
 import { SZLCSCError } from './types'
 export { find } from './china'
 
@@ -21,26 +22,16 @@ export async function handle(ctx: Context, code: string) {
       yield `Brand: <code>${product.brand}</code>`
       yield `Model: <code>${product.model}</code>`
       yield `Package: <code>${product.package.standard}</code> (${getPackage(product.package)})`
-      for (const stock of product.stocks) {
-        yield `Stock (${stock.area}): ${getInStock(product.package, stock.amount)}`
-      }
       {
-        const prices = product.prices.filter((_) => _.symbol === 'CNY')
-        if (prices.length > 0) {
-          yield `Price List (CNY): ${makePriceList(prices, product.package)}`
-          if (prices[0].start > 1) {
-            yield `Start Price: ${makeStartPrice(prices, product.package)}`
-          }
-        }
+        const { stocks, totalStocks } = getReadableStock(product.stocks, product.package)
+        if (stocks.length > 1) yield `Stock: ${totalStocks}`
+        yield* stocks.map((stock) => `Stock (${stock.area}): ${stock.amount}`)
       }
-      {
-        const prices = product.prices.filter((_) => _.symbol === 'USD')
-        if (prices.length > 0) {
-          yield `Price List (USD): ${makePriceList(prices, product.package)}`
-          if (prices[0].start > 1) {
-            yield `Start Price: ${makeStartPrice(prices, product.package)}`
-          }
-        }
+      for (const [symbol, prices] of Object.entries(groupBy(product.prices, 'symbol'))) {
+        if (prices.length === 0) continue
+        const { first, last, start } = getReadablePrice(prices, product.package)
+        yield `Price List (${symbol}): ${first}, ${last}`
+        if (start) yield `Start Price: ${start}`
       }
     },
     *markup() {
