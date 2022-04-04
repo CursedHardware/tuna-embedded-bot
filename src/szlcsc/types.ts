@@ -1,5 +1,3 @@
-import type { InputFile } from 'telegraf/typings/core/types/typegram'
-
 export interface Product {
   id: number
   code: string
@@ -9,7 +7,7 @@ export interface Product {
   package: ProductPackage
   stocks: ProductStock[]
   prices: ProductPrice[]
-  photos: InputFile[]
+  photos: string[]
   links: Record<string, string>
 }
 

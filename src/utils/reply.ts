@@ -9,7 +9,7 @@ import { getPDFPage, isPDF } from './pdf'
 interface ReplyOptions {
   brand: string
   model: string
-  photos?: InputFile[]
+  photos?: string[]
   html(): Generator<string>
   datasheet?: Datasheet
   links?: Record<string, string>
@@ -34,7 +34,7 @@ export async function reply(ctx: Context<Update>, options: ReplyOptions) {
       },
     },
   }
-  const photos = options.photos ?? []
+  const photos = (options.photos ?? []).map((url): InputFile => ({ url })) ?? []
   if (ctx.chat?.type === 'private' && datasheet && isPDF(datasheet.url)) {
     if (datasheet.source) {
       try {
