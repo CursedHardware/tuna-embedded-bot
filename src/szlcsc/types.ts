@@ -1,52 +1,36 @@
-export interface Payload<T> {
-  code: number
-  msg: string
-  result: T
-}
+import type { InputFile } from 'telegraf/typings/core/types/typegram'
 
-export interface ProductIntl {
-  productId: number
-  productCode: string
-  productModel: string
-  brandNameEn: string
-  encapStandard: string
-  productUnit: string
-  minPacketUnit: string
-  minPacketNumber: number
-  split: number
-  stockNumber: number
-  stockSz: number
-  stockJs: number
-  productPriceList: ProductPrice[]
-  productImages: string[]
-  pdfUrl: string
-}
-
-export interface ProductChina {
-  code: string
-  priceDiscount: {
-    priceList: Array<{ discount: number; spNumber: number; price: number }>
-  }
-  priceList: Array<{ price: number; startNumber: number; endNumber: number }>
-  splitRatio: number
-  param: Record<string, string> | null
-}
-
-export interface SearchedProduct {
+export interface Product {
   id: number
   code: string
+  brand: string
+  model: string
+  datasheetURL?: string
+  package: ProductPackage
+  stocks: ProductStock[]
+  prices: ProductPrice[]
+  photos: InputFile[]
+  links: Record<string, string>
+}
+
+export interface ProductPackage {
+  standard: string
+  minUnit: string
+  unit: string
+  amount: number
+}
+
+export interface ProductStock {
+  area: string
+  amount: number
 }
 
 export interface ProductPrice {
-  ladder: number
-  usdPrice: number
-  discountRate: string
+  start: number
+  price: number
+  symbol: string
 }
 
 export class SZLCSCError extends Error {
   name = 'SZLCSCError'
-
-  constructor(message: string) {
-    super(message)
-  }
 }

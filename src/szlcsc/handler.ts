@@ -1,92 +1,58 @@
-import Decimal from 'decimal.js'
-import fetch from 'node-fetch'
+import { groupBy } from 'lodash'
 import type { Context } from 'telegraf'
-import type { InputFile } from 'telegraf/typings/core/types/typegram'
-import urlcat from 'urlcat'
-import { formatPrice, toReadableNumber } from '../utils/number'
-import { PriceItem, reply } from '../utils/reply'
-import { Payload, SearchedProduct, SZLCSCError } from './types'
-import { getInStock, getPackage, getProductFromChina, getProductFromIntl } from './utils'
+import { reply } from '../utils/reply'
+import { getProductFromChina, getProductIdFromCode } from './china'
+import { getProductFromIntl } from './intl'
+import { getPackage, getReadablePrice, getReadableStock } from './product'
+import { SZLCSCError } from './types'
+export { find } from './china'
 
-export async function handle(ctx: Context, productCode: string) {
-  productCode = productCode.toUpperCase()
-  const product = await getProductFromIntl(productCode)
-  const productChina = await getProductFromChina(product.productId)
+export async function handle(ctx: Context, code: string) {
+  const product = await getProduct(code)
   return reply(ctx, {
-    brand: product.brandNameEn,
-    model: product.productModel,
-    datasheet() {
-      const name = `${product.productCode}_${product.productModel}.pdf`
-      return { url: product.pdfUrl, name }
+    brand: product.brand,
+    model: product.model,
+    photos: product.photos,
+    datasheet: {
+      url: product.datasheetURL,
+      name: `${product.code}_${product.model}.pdf`,
     },
-    *html(prices) {
-      yield `Part#: <code>${product.productCode}</code>`
-      yield `Brand: <code>${product.brandNameEn}</code>`
-      yield `Model: <code>${product.productModel}</code>`
-      yield `Package: <code>${product.encapStandard}</code> (${getPackage(product)})`
-      if (product.stockJs && product.stockSz) {
-        yield `Stock: ${getInStock(product, product.stockNumber)}`
+    links: product.links,
+    *html() {
+      yield `Part#: <code>${product.code}</code>`
+      yield `Brand: <code>${product.brand}</code>`
+      yield `Model: <code>${product.model}</code>`
+      yield `Package: <code>${product.package.standard}</code> (${getPackage(product.package)})`
+      {
+        const { stocks, totalStocks } = getReadableStock(product.stocks, product.package)
+        if (stocks.length > 1) yield `Stock: ${totalStocks}`
+        yield* stocks.map((stock) => `Stock (${stock.area}): ${stock.amount}`)
       }
-      if (product.stockJs) {
-        yield `Stock (Jiangsu): ${getInStock(product, product.stockJs)}`
+      for (const [symbol, prices] of Object.entries(groupBy(product.prices, 'symbol'))) {
+        if (prices.length === 0) continue
+        const { first, last, start } = getReadablePrice(prices, product.package)
+        yield `Price List (${symbol}): ${first}, ${last}`
+        if (start) yield `Start Price: ${start}`
       }
-      if (product.stockSz) {
-        yield `Stock (Shenzhen): ${getInStock(product, product.stockSz)}`
-      }
-      yield `Price List (CNY): ${makePriceList(prices, 'CNY', product.productUnit)}`
-      if (productChina.splitRatio > 1) {
-        yield `Start Price (CNY): ${makeStartPrice(prices, 'CNY', product.productUnit)}`
-      }
-      yield `Price List (USD): ${makePriceList(prices, 'USD', product.productUnit)}`
-      if (product.split > 1) {
-        yield `Start Price (USD): ${makeStartPrice(prices, 'USD', product.productUnit)}`
-      }
-    },
-    *prices() {
-      if (productChina.priceDiscount) {
-        for (let { spNumber: start, price, discount } of productChina.priceDiscount.priceList) {
-          price = new Decimal(price).mul(discount).toNumber()
-          start = new Decimal(start).mul(productChina.splitRatio).toNumber()
-          yield { symbol: 'CNY', start, price }
-        }
-      } else {
-        for (let { startNumber: start, price } of productChina.priceList) {
-          start = new Decimal(start).mul(productChina.splitRatio).toNumber()
-          yield { symbol: 'CNY', start, price }
-        }
-      }
-      for (const { ladder, usdPrice, discountRate } of product.productPriceList) {
-        const price = new Decimal(usdPrice).mul(discountRate ?? '1').toNumber()
-        yield { symbol: 'USD', start: ladder, price }
-      }
-    },
-    photos() {
-      return (product.productImages ?? []).map((url): InputFile => ({ url }))
-    },
-    *markup() {
-      yield { text: product.productCode, url: `https://lcsc.com/product-detail/${product.productCode}.html` }
-      yield { text: '立创商城', url: `https://item.szlcsc.com/${product.productId}.html` }
     },
   })
 }
 
-export async function find(keyword: string) {
-  const response = await fetch(urlcat('https://so.szlcsc.com/phone/p/product/search', { keyword }))
-  const payload: Payload<{ productList: SearchedProduct[] }> = await response.json()
-  if (payload.code !== 200) throw new SZLCSCError(payload.msg)
-  return payload.result.productList ?? []
-}
-
-function makeStartPrice(items: PriceItem[], symbol: string, unit: string) {
-  items = items.filter((item) => item.symbol === symbol)
-  const { price, start } = items[0]
-  const minimumPrice = new Decimal(price).mul(start).toFixed(2)
-  return `${toReadableNumber(start)} ${unit}/${minimumPrice}`
-}
-
-function makePriceList(items: PriceItem[], symbol: string, unit: string): string {
-  items = items.filter((item) => item.symbol === symbol)
-  return [items[0], items[items.length - 1]]
-    .map(({ start, price }) => `${toReadableNumber(start)}+: ${formatPrice(price, unit)}`)
-    .join(', ')
+async function getProduct(code: string) {
+  code = code.toUpperCase()
+  try {
+    const product = await getProductFromIntl(code)
+    try {
+      const productChina = await getProductFromChina(product.id)
+      product.prices = [...product.prices, ...productChina.prices]
+      product.links = { ...product.links, ...productChina.links }
+    } catch {
+      // ignore
+    }
+    return product
+  } catch {
+    const productId = await getProductIdFromCode(code)
+    if (!productId) throw new SZLCSCError('No Found')
+    return getProductFromChina(productId)
+  }
 }

@@ -1,6 +1,4 @@
-import { Decimal } from 'decimal.js'
-
-const ONE = new Decimal('1')
+import Decimal from 'decimal.js'
 
 export function toReadableNumber(input: Decimal.Value, base = 1000) {
   input = new Decimal(input)
@@ -16,10 +14,4 @@ export function toReadableNumber(input: Decimal.Value, base = 1000) {
     formatted = value.toFixed(1)
   }
   return formatted + units[n]
-}
-
-export function formatPrice(input: Decimal.Value, unit: string) {
-  input = new Decimal(input)
-  if (input.lt(ONE)) return `${ONE.div(input).ceil()} ${unit}/1`
-  return toReadableNumber(input)
 }

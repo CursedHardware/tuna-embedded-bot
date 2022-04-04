@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import path from 'path'
-import { Context, Markup } from 'telegraf'
-import type { InlineKeyboardButton, InputFile, Update } from 'telegraf/typings/core/types/typegram'
+import { Context } from 'telegraf'
+import type { InputFile, Update } from 'telegraf/typings/core/types/typegram'
 import type { ExtraReplyMessage } from 'telegraf/typings/telegram-types'
 import { download, getLuckyURL } from './datasheet'
 import { getPDFPage, isPDF } from './pdf'
@@ -9,17 +9,10 @@ import { getPDFPage, isPDF } from './pdf'
 interface ReplyOptions {
   brand: string
   model: string
-  html(prices: PriceItem[]): Generator<string>
-  datasheet?(): Datasheet
-  prices?(): Generator<PriceItem>
-  photos?(): Generator<InputFile> | InputFile[]
-  markup?(): Generator<InlineKeyboardButton>
-}
-
-export interface PriceItem {
-  start: number
-  price: number
-  symbol: string
+  photos?: InputFile[]
+  html(): Generator<string>
+  datasheet?: Datasheet
+  links?: Record<string, string>
 }
 
 export interface Datasheet {
@@ -29,18 +22,19 @@ export interface Datasheet {
 }
 
 export async function reply(ctx: Context<Update>, options: ReplyOptions) {
-  const prices = Array.from(options.prices?.() ?? [])
-  const caption = Array.from(options.html(prices)).join('\n')
+  const caption = Array.from(options.html()).join('\n')
   const datasheet = await getDatasheet(options)
-  const extra: ExtraReplyMessage = { parse_mode: 'HTML', reply_to_message_id: ctx.message?.message_id }
-  {
-    const buttons = Array.from(options.markup?.() ?? [])
-    extra.reply_markup = Markup.inlineKeyboard(buttons, { columns: 2 }).reply_markup
-    if (datasheet) {
-      extra.reply_markup.inline_keyboard.push([{ text: 'Datasheet', url: datasheet.url }])
-    }
+  const extra: ExtraReplyMessage = {
+    parse_mode: 'HTML',
+    reply_to_message_id: ctx.message?.message_id,
+    reply_markup: {
+      get inline_keyboard() {
+        const buttons = Object.entries(options.links ?? {}).map(([text, url]) => ({ text, url }))
+        return _.compact([..._.chunk(buttons, 2), datasheet && [{ text: 'Datasheet', url: datasheet.url }]])
+      },
+    },
   }
-  const photos: InputFile[] = Array.from(options.photos?.() ?? [])
+  const photos = options.photos ?? []
   if (ctx.chat?.type === 'private' && datasheet && isPDF(datasheet.url)) {
     if (datasheet.source) {
       try {
@@ -66,19 +60,17 @@ export async function reply(ctx: Context<Update>, options: ReplyOptions) {
 }
 
 async function getDatasheet({ datasheet, brand, model }: ReplyOptions) {
-  const ds = datasheet?.()
-  if (!ds || ds.keywords?.length === 0) return
-  if (isPDF(ds.url)) {
+  if (!datasheet || datasheet.keywords?.length === 0) return
+  if (isPDF(datasheet.url)) {
     return {
-      url: ds.url,
-      filename: ds.name ?? path.basename(ds.url),
-      source: await download(ds.url).catch(() => undefined),
+      url: datasheet.url,
+      filename: datasheet.name ?? path.basename(datasheet.url),
+      source: await download(datasheet.url).catch(() => undefined),
     }
   }
-  const keywords = _.compact(
-    ds.keywords ?? [/^[\d-_]{5,}$/.test(model) ? brand : undefined, model, 'datasheet', 'filetype:pdf'],
-  )
   return {
-    url: getLuckyURL(keywords),
+    url: datasheet.keywords
+      ? getLuckyURL(...datasheet.keywords)
+      : getLuckyURL(/^[\d-_]{5,}$/.test(model) ? brand : undefined, model, 'datasheet', 'filetype:pdf'),
   }
 }

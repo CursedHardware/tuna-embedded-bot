@@ -1,9 +1,3 @@
-export interface Payload<T> {
-  code: number
-  msg: string
-  data: T
-}
-
 export interface ChipDetails {
   id: number
   partNumber: string
@@ -28,8 +22,4 @@ export interface ChipDetails {
 
 export class FlashInfoError extends Error {
   name = 'FlashInfoError'
-
-  constructor(message: string) {
-    super(message)
-  }
 }

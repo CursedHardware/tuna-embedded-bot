@@ -2,7 +2,7 @@ import fetch from 'node-fetch'
 import { Context } from 'telegraf'
 import urlcat, { ParamMap } from 'urlcat'
 import { reply } from '../utils/reply'
-import { ChipDetails as FlashDatasheet, FlashInfoError, Payload } from './types'
+import { ChipDetails as FlashDatasheet, FlashInfoError } from './types'
 
 const HOST = 'https://flashinfo.top'
 
@@ -17,10 +17,8 @@ export async function handle(ctx: Context, partNumber: string) {
   const datasheet = await get<FlashDatasheet>('/searchFlashByPn', { partNumber })
   return reply(ctx, {
     brand: datasheet.brand,
-    model: datasheet.partNumber,
-    datasheet() {
-      return { keywords: [] }
-    },
+    model: datasheet.micronPartnumber ?? datasheet.partNumber,
+    datasheet: { keywords: [] },
     *html() {
       yield `Brand: <code>${datasheet.brand.split('/')[0]}</code>`
       if (datasheet.micronPartnumber) {
@@ -45,8 +43,13 @@ export async function handle(ctx: Context, partNumber: string) {
 }
 
 async function get<T>(pathname: string, params: ParamMap = {}) {
+  interface Payload {
+    code: number
+    msg: string
+    data: T
+  }
   const response = await fetch(urlcat(HOST, pathname, params))
-  const payload: Payload<T> = await response.json()
+  const payload: Payload = await response.json()
   if (payload.code !== 0) throw new FlashInfoError(payload.msg)
   return payload.data
 }
