@@ -27,6 +27,8 @@ export async function handle(ctx: Context, id: string) {
     *html() {
       yield `Brand: <code>${brand}</code>`
       yield `Model: <code>${product.model}</code>`
+      yield ''
+      yield product.descr
     },
   })
 }

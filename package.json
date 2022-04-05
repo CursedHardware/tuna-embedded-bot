@@ -8,6 +8,7 @@
     "deploy": "scripts/deploy.sh"
   },
   "dependencies": {
+    "date-fns": "^2.28.0",
     "decimal.js": "^10.3.1",
     "html-entities": "^2.3.3",
     "lodash": "^4.17.21",
