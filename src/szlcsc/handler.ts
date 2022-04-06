@@ -41,9 +41,10 @@ export async function handle(ctx: Context, code: string) {
         if (startPrice.start > 1) {
           yield pkg.toStartPriceString(startPrice)
         }
-        const medianPrice = findLast(prices, ({ start }) => start <= 1000)
-        if (medianPrice) {
-          yield pkg.toStartPriceString(medianPrice)
+        {
+          const amount = Math.min(1000, pkg.amount)
+          const price = findLast(prices, ({ start, price }) => start <= amount && price <= 100)
+          if (price) yield pkg.toStartPriceString(price, amount)
         }
       }
     },

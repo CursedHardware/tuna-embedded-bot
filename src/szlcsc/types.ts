@@ -37,10 +37,10 @@ export class Package implements Package.Options {
     return `${toReadableNumber(amount.div(this.amount))} ${this.unit}`
   }
 
-  toStartPriceString({ price, start, symbol }: ProductPrice) {
-    const title = `${toReadableNumber(start)} ${this.minUnit}`
-    const amount = new Decimal(price).mul(start).toFixed(2)
-    return `${title}: ${toReadableNumber(amount, 2)} ${symbol}`
+  toStartPriceString({ price, start, symbol }: ProductPrice, amount = start) {
+    const title = this.amount === amount ? `1 ${this.unit}` : `${toReadableNumber(amount)} ${this.minUnit}`
+    const totalPrice = new Decimal(price).mul(amount).toFixed(2)
+    return `${title}: ${toReadableNumber(totalPrice, 2)} ${symbol}`
   }
 
   toPriceString({ start, price }: ProductPrice) {
