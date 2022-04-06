@@ -1,6 +1,6 @@
 import Decimal from 'decimal.js'
 
-export function toReadableNumber(input: Decimal.Value, base = 1000) {
+export function toReadableNumber(input: Decimal.Value, decimalPlaces = 1, base = 1000) {
   input = new Decimal(input)
   if (input.isZero()) return '0'
   if (input.lt('1')) return input.toFixed(3)
@@ -11,7 +11,7 @@ export function toReadableNumber(input: Decimal.Value, base = 1000) {
   const value = input.div(Decimal.pow(base, n))
   let formatted = value.toString()
   if (!value.isInt()) {
-    formatted = value.toFixed(1)
+    formatted = value.toFixed(decimalPlaces)
   }
   return formatted + units[n]
 }
