@@ -43,7 +43,7 @@ export async function handle(ctx: Context, code: string) {
         }
         const medianPrice = findLast(prices, ({ start }) => start <= 1000)
         if (medianPrice) {
-          yield pkg.toStartPriceString(medianPrice)
+          yield pkg.toStartPriceString(medianPrice, 1000)
         }
       }
     },
