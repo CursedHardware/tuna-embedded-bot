@@ -36,14 +36,6 @@ export const Finder = Composer.command(
     return group(ctx, `Reading <code>${model}</code> from semiee.com`, () => SEMIEE.handle(ctx, id))
   },
   async (ctx, next) => {
-    const products = await EMakerZone.find(ctx.state.query)
-    if (products.length === 0) return next()
-    const { pat_number } = products[0]
-    return group(ctx, `Reading <code>${pat_number}</code> from emakerzone.com`, () =>
-      EMakerZone.handle(ctx, products[0]),
-    )
-  },
-  async (ctx, next) => {
     const products = await XCC.find(ctx.state.query)
     if (products.length === 0) return next()
     const { title } = products[0]
@@ -60,6 +52,14 @@ export const Finder = Composer.command(
     if (products.length === 0) return next()
     const model = products[0]
     return group(ctx, `Reading <code>${model}</code> from flashinfo.top`, () => FlashInfo.handle(ctx, model))
+  },
+  async (ctx, next) => {
+    const products = await EMakerZone.find(ctx.state.query)
+    if (products.length === 0) return next()
+    const { pat_number } = products[0]
+    return group(ctx, `Reading <code>${pat_number}</code> from emakerzone.com`, () =>
+      EMakerZone.handle(ctx, products[0]),
+    )
   },
   (ctx) => ctx.reply('No Result', { reply_to_message_id: ctx.message.message_id }),
 )
