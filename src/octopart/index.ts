@@ -8,7 +8,7 @@ export async function find(q: string) {
   interface Payload {
     search: { results?: Array<{ part: PartResult }> }
   }
-  const part = `part{octopart_url short_description mpn manufacturer{name}best_datasheet{url}estimated_factory_lead_days}`
+  const part = `part{octopart_url short_description mpn manufacturer_url manufacturer{name}best_datasheet{url}estimated_factory_lead_days}}`
   const { search } = await query<Payload>(`query Query($q:String){search(limit:1,q:$q){results{${part}}}}`, { q })
   return search.results?.map((result) => result.part) ?? []
 }
@@ -19,10 +19,12 @@ export function handle(ctx: Context, result: PartResult) {
     model: result.mpn,
     datasheet: { name: result.best_datasheet?.url },
     *html() {
-      if (result.manufacturer) {
-        yield `Brand: <code>${result.manufacturer.name}</code>`
+      yield `Brand: <code>${result.manufacturer.name}</code>`
+      if (result.manufacturer_url) {
+        yield `Model: <a href="${result.manufacturer_url}">${result.mpn}</a>`
+      } else {
+        yield `Model: <code>${result.mpn}</code>`
       }
-      yield `Model: <code>${result.mpn}</code>`
       yield ''
       yield result.short_description
       yield ''
