@@ -2,7 +2,7 @@ import Decimal from 'decimal.js'
 import { identity, isEmpty } from 'lodash'
 import fetch from 'node-fetch'
 import urlcat, { ParamMap } from 'urlcat'
-import { Product, ProductPrice, SZLCSCError } from './types'
+import { Package, Product, ProductPrice, SZLCSCError } from './types'
 
 export async function find(keyword: string) {
   interface Product {
@@ -40,12 +40,12 @@ export async function getProductFromChina(id: number) {
     brand: payload.brandName.replace(/\(.+\)$/, ''),
     model: payload.model,
     datasheetURL: isEmpty(payload.pdfUrl) ? undefined : new URL(payload.pdfUrl, 'https://atta.szlcsc.com').toString(),
-    package: {
+    package: new Package({
       standard: payload.standard,
       minUnit: payload.stockUnit,
       unit: payload.packageUnit,
       amount: payload.productMinEncapsulationNumber,
-    },
+    }),
     stocks: [
       { area: 'Jiangsu', amount: payload.jsWarehouseStockNumber },
       { area: 'Guangdong', amount: payload.gdWarehouseStockNumber },

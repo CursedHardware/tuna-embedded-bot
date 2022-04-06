@@ -1,21 +1,64 @@
+import Decimal from 'decimal.js'
+import { toReadableNumber } from '../utils/number'
+import { formatPrice } from './product'
+
 export interface Product {
   id: number
   code: string
   brand: string
   model: string
   datasheetURL?: string
-  package: ProductPackage
+  package: Package
   stocks: ProductStock[]
   prices: ProductPrice[]
   photos: string[]
   links: Record<string, string>
 }
 
-export interface ProductPackage {
-  standard: string
-  minUnit: string
-  unit: string
-  amount: number
+export class Package implements Package.Options {
+  public readonly standard: string
+  public readonly minUnit: string
+  public readonly unit: string
+  public readonly amount: number
+
+  constructor(options: Package.Options) {
+    this.standard = options.standard
+    this.minUnit = options.minUnit
+    this.unit = options.unit
+    this.amount = options.amount
+  }
+
+  toStockString(amount: Decimal.Value) {
+    return `${toReadableNumber(amount)} ${this.minUnit} (${this.toMinStockUnitString(amount)})`
+  }
+
+  toMinStockUnitString(amount: Decimal.Value) {
+    amount = new Decimal(amount)
+    return `${toReadableNumber(amount.div(this.amount))} ${this.unit}`
+  }
+
+  toStartPriceString({ price, start, symbol }: ProductPrice) {
+    const title = `${toReadableNumber(start)} ${this.minUnit}`
+    const amount = new Decimal(price).mul(start).toFixed(2)
+    return `${title}: ${toReadableNumber(amount, 2)} ${symbol}`
+  }
+
+  toPriceString({ start, price }: ProductPrice) {
+    return `${toReadableNumber(start)}+: ${formatPrice(price, this.minUnit)}`
+  }
+
+  toString() {
+    return `${toReadableNumber(this.amount)} ${this.minUnit}/${this.unit}`
+  }
+}
+
+export namespace Package {
+  export interface Options {
+    standard: string
+    minUnit: string
+    unit: string
+    amount: number
+  }
 }
 
 export interface ProductStock {
