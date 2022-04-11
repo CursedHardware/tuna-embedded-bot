@@ -20,7 +20,7 @@ export function exec(...argv: string[]) {
   })
 }
 
-class ExecError extends Error {
+export class ExecError extends Error {
   name = 'ExecError'
 
   public readonly command: string
