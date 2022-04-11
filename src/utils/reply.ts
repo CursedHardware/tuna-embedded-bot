@@ -23,25 +23,27 @@ export interface Datasheet {
 
 export async function reply(ctx: Context<Update>, options: ReplyOptions) {
   const caption = Array.from(options.html()).join('\n')
-  const datasheet = await getDatasheet(options)
+  const datasheet = getDatasheet(options)
   const extra: ExtraReplyMessage = {
     parse_mode: 'HTML',
     reply_to_message_id: ctx.message?.message_id,
     reply_markup: {
       get inline_keyboard() {
         const buttons = Object.entries(options.links ?? {}).map(([text, url]) => ({ text, url }))
-        return _.compact([..._.chunk(buttons, 2), datasheet && [{ text: 'Datasheet', url: datasheet.url }]])
+        return _.compact([
+          ..._.chunk(buttons, 2),
+          datasheet && 'url' in datasheet && [{ text: 'Datasheet', url: datasheet.url }],
+        ])
       },
     },
   }
   const photos = (options.photos ?? []).map((url): InputFile => ({ url })) ?? []
-  if (ctx.chat?.type === 'private' && datasheet && isPDF(datasheet.url)) {
-    if (datasheet.source) {
-      try {
-        photos.unshift({ source: await getPDFPage(datasheet.source, 0) })
-      } catch (error) {
-        console.error('pdf-page', { error })
-      }
+  if (ctx.chat?.type === 'private' && datasheet && 'url' in datasheet && isPDF(datasheet.url)) {
+    const source = await download(datasheet.url).catch(() => undefined)
+    try {
+      if (source) photos.unshift({ source: await getPDFPage(source, 0) })
+    } catch (error) {
+      console.error('pdf-page', { error })
     }
     if (photos.length) {
       await ctx.replyWithMediaGroup(
@@ -49,9 +51,7 @@ export async function reply(ctx: Context<Update>, options: ReplyOptions) {
         extra,
       )
     }
-    if (datasheet.source) {
-      await ctx.replyWithDocument(datasheet, { ...extra, caption })
-    }
+    if (source) await ctx.replyWithDocument(datasheet, { ...extra, caption })
   } else if (photos[0]) {
     await ctx.replyWithPhoto(photos[0], { ...extra, caption })
   } else {
@@ -59,13 +59,12 @@ export async function reply(ctx: Context<Update>, options: ReplyOptions) {
   }
 }
 
-async function getDatasheet({ datasheet, brand, model }: ReplyOptions) {
+function getDatasheet({ datasheet, brand, model }: ReplyOptions): InputFile | undefined {
   if (!datasheet || datasheet.keywords?.length === 0) return
   if (isPDF(datasheet.url)) {
     return {
       url: datasheet.url,
       filename: datasheet.name ?? path.basename(datasheet.url),
-      source: await download(datasheet.url).catch(() => undefined),
     }
   }
   return {
