@@ -1,7 +1,4 @@
 import { Composer } from 'telegraf'
-import * as EMakerZone from './emakerzone'
-import * as FlashInfo from './flashinfo'
-import * as Octopart from './octopart'
 import * as SEMIEE from './semiee'
 import * as SZLCSC from './szlcsc'
 import { getQuery, group, isBotCommand } from './utils/telegraf'
@@ -33,26 +30,6 @@ export const Finder = Composer.command(
     if (products.length === 0) return next()
     const { id, model } = products[0]
     return group(ctx, `Reading <code>${model}</code> from semiee.com`, () => SEMIEE.handle(ctx, id))
-  },
-  async (ctx, next) => {
-    const products = await Octopart.find(ctx.state.query)
-    if (products.length === 0) return next()
-    const { mpn } = products[0]
-    return group(ctx, `Reading <code>${mpn}</code> from octopart.com`, () => Octopart.handle(ctx, products[0]))
-  },
-  async (ctx, next) => {
-    const products = await FlashInfo.find(ctx.state.query)
-    if (products.length === 0) return next()
-    const model = products[0]
-    return group(ctx, `Reading <code>${model}</code> from flashinfo.top`, () => FlashInfo.handle(ctx, model))
-  },
-  async (ctx, next) => {
-    const products = await EMakerZone.find(ctx.state.query)
-    if (products.length === 0) return next()
-    const { pat_number } = products[0]
-    return group(ctx, `Reading <code>${pat_number}</code> from emakerzone.com`, () =>
-      EMakerZone.handle(ctx, products[0]),
-    )
   },
   (ctx) => ctx.reply('No Result', { reply_to_message_id: ctx.message.message_id }),
 )
