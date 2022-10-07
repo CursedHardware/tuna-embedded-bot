@@ -12,7 +12,7 @@ export const bot = new Telegraf(process.env.BOT_TOKEN ?? '', {
 bot.use(
   ErrorHandler,
   Composer.log(console.log.bind(console)),
-  limitGroupChatIDs(-1001232571812, -1001630828458),
+  limitGroupChatIDs(-1001232571812, -1001630828458, -1001716658258),
   AnyText,
   Finder,
   SZLCSC,
