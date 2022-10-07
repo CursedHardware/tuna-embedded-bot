@@ -40,7 +40,7 @@ export class Package implements Package.Options {
   toStartPriceString({ price, start, symbol }: ProductPrice, amount = start) {
     const title = this.amount === amount ? `1 ${this.unit}` : `${toReadableNumber(amount)} ${this.minUnit}`
     const totalPrice = new Decimal(price).mul(amount).toFixed(2)
-    return `${title}: ${toReadableNumber(totalPrice, 2)} ${symbol}`
+    return `${title}: ${toReadableNumber(totalPrice)} ${symbol}`
   }
 
   toPriceString({ start, price }: ProductPrice) {
