@@ -5,7 +5,6 @@ import * as Octopart from './octopart'
 import * as SEMIEE from './semiee'
 import * as SZLCSC from './szlcsc'
 import { getQuery, group, isBotCommand } from './utils/telegraf'
-import * as XCC from './xcc'
 
 export const AnyText = Composer.on('text', async (ctx, next) => {
   if (ctx.chat.type !== 'private') return next()
@@ -34,12 +33,6 @@ export const Finder = Composer.command(
     if (products.length === 0) return next()
     const { id, model } = products[0]
     return group(ctx, `Reading <code>${model}</code> from semiee.com`, () => SEMIEE.handle(ctx, id))
-  },
-  async (ctx, next) => {
-    const products = await XCC.find(ctx.state.query)
-    if (products.length === 0) return next()
-    const { title } = products[0]
-    return group(ctx, `Reading <code>${title}</code> from xcc.com`, () => XCC.handle(ctx, products[0]))
   },
   async (ctx, next) => {
     const products = await Octopart.find(ctx.state.query)
