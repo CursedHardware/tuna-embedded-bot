@@ -34,7 +34,7 @@ export class Package implements Package.Options {
 
   toMinStockUnitString(amount: Decimal.Value) {
     amount = new Decimal(amount)
-    return `${toReadableNumber(amount.div(this.amount))} ${this.unit}`
+    return `${toReadableNumber(amount.div(this.amount), { decimalPlaces: 2 })} ${this.unit}`
   }
 
   toStartPriceString({ price, start, symbol }: ProductPrice, amount = start) {

@@ -16,6 +16,6 @@ export function toReadableNumber(input: Decimal.Value, options?: ReadableNumberO
   const n = Decimal.log(input).divToInt(Decimal.log(base)).toNumber()
   // value = input / base ** n
   const value = input.div(Decimal.pow(base, n))
-  const formatted = value.isInt() ? value.toFixed(options?.decimalPlaces ?? 1) : value.toString()
+  const formatted = value.isInt() ? value.toString() : value.toFixed(options?.decimalPlaces ?? 1)
   return formatted + units[n]
 }
